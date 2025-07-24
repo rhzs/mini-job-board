@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { Modal } from '@/components/ui/modal'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { useAuth } from '@/lib/auth-context'
 import { LoadingStep } from './steps/loading-step'
 import { LocationStep } from './steps/location-step'
@@ -18,6 +19,7 @@ export function OnboardingModal() {
     job_titles: [],
     onboarding_completed: false
   })
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false)
 
   const steps = [
     { component: LoadingStep, title: "Matching you with jobs" },
@@ -44,6 +46,50 @@ export function OnboardingModal() {
     setPreferences(prev => ({ ...prev, ...updates }))
   }
 
+  const savePartialPreferences = async () => {
+    if (!user) return
+
+    try {
+      const partialPreferences = {
+        ...preferences,
+        user_id: user.id,
+        onboarding_completed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      // Check if preferences already exist
+      const { data: existingData } = await supabase
+        .from('user_preferences')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+
+      if (existingData) {
+        // Update existing preferences
+        const { error } = await supabase
+          .from('user_preferences')
+          .update(partialPreferences)
+          .eq('user_id', user.id)
+
+        if (error) {
+          console.error('Error updating preferences:', error)
+        }
+      } else {
+        // Insert new preferences
+        const { error } = await supabase
+          .from('user_preferences')
+          .insert([partialPreferences])
+
+        if (error) {
+          console.error('Error saving preferences:', error)
+        }
+      }
+    } catch (error) {
+      console.error('Error saving partial preferences:', error)
+    }
+  }
+
   const completeOnboarding = async () => {
     if (!user) return
 
@@ -56,15 +102,38 @@ export function OnboardingModal() {
         updated_at: new Date().toISOString()
       }
 
-      const { error } = await supabase
+      // Check if preferences already exist
+      const { data: existingData } = await supabase
         .from('user_preferences')
-        .insert([finalPreferences])
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
 
-      if (error) {
-        console.error('Error saving preferences:', error)
+      if (existingData) {
+        // Update existing preferences
+        const { error } = await supabase
+          .from('user_preferences')
+          .update(finalPreferences)
+          .eq('user_id', user.id)
+
+        if (error) {
+          console.error('Error updating preferences:', error)
+        } else {
+          console.log('Preferences updated successfully')
+          closeOnboarding()
+        }
       } else {
-        console.log('Preferences saved successfully')
-        closeOnboarding()
+        // Insert new preferences
+        const { error } = await supabase
+          .from('user_preferences')
+          .insert([finalPreferences])
+
+        if (error) {
+          console.error('Error saving preferences:', error)
+        } else {
+          console.log('Preferences saved successfully')
+          closeOnboarding()
+        }
       }
     } catch (error) {
       console.error('Error completing onboarding:', error)
@@ -75,33 +144,61 @@ export function OnboardingModal() {
 
   const CurrentStepComponent = steps[currentStep].component
 
-  return (
-    <Modal
-      isOpen={showOnboarding}
-      onClose={() => {}} // Prevent closing during onboarding
-      className="max-w-2xl"
-    >
-      <div className="space-y-6">
-        {/* Progress Bar */}
-        {currentStep > 0 && (
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-indeed-blue h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        )}
+  const handleClose = () => {
+    // Allow closing but show confirmation for steps after loading
+    if (currentStep > 0) {
+      setShowCloseConfirmation(true)
+    } else {
+      closeOnboarding()
+    }
+  }
 
-        {/* Step Content */}
-        <CurrentStepComponent
-          preferences={preferences}
-          updatePreferences={updatePreferences}
-          onNext={handleNext}
-          onBack={handleBack}
-          canGoBack={currentStep > 1}
-          isLoading={currentStep === 0}
-        />
-      </div>
-    </Modal>
+  const handleConfirmClose = () => {
+    savePartialPreferences()
+    closeOnboarding()
+  }
+
+  return (
+    <>
+      <Modal
+        isOpen={showOnboarding}
+        onClose={handleClose}
+        className="max-w-2xl"
+      >
+        <div className="space-y-6">
+          {/* Progress Bar */}
+          {currentStep > 0 && (
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-indeed-blue h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
+
+          {/* Step Content */}
+          <CurrentStepComponent
+            preferences={preferences}
+            updatePreferences={updatePreferences}
+            onNext={handleNext}
+            onBack={handleBack}
+            canGoBack={currentStep > 1}
+            isLoading={currentStep === 0}
+          />
+        </div>
+      </Modal>
+
+      {/* Close Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showCloseConfirmation}
+        onClose={() => setShowCloseConfirmation(false)}
+        onConfirm={handleConfirmClose}
+        title="Save your progress?"
+        message="Your preferences will be saved and you can continue setting up your profile later from the homepage."
+        confirmText="Save & Close"
+        cancelText="Continue Setup"
+        variant="default"
+      />
+    </>
   )
 } 

@@ -66,10 +66,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error.message.includes('Email not confirmed')) {
           console.log('User signed in with unconfirmed email')
           // Still return success - user can sign in without email confirmation
+          closeModals()
           return {}
         }
         return { error: error.message }
       }
+      
+      // Successful sign-in - close modals, home page will show job search
+      closeModals()
       
       return {}
     } catch (error) {
@@ -95,8 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // If signup successful, trigger onboarding for new users
       if (data.user && !error) {
-        setShowSignUp(false)
-        setShowOnboarding(true)
+        console.log('User created successfully:', data.user.email)
+        closeModals()
+        openOnboarding()
+        return {}
       }
       
       return {}
@@ -121,8 +127,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // If no preferences found or onboarding not completed, show onboarding
-      if (!data || !data.onboarding_completed) {
+      // Only show onboarding for completely new users (no preferences at all)
+      // Users with partial preferences can complete later via the recommendations section
+      if (!data) {
         setShowOnboarding(true)
       }
     } catch (error) {

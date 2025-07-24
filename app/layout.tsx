@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/lib/auth-context'
+import { SavedJobsProvider } from '@/components/jobs/saved-jobs'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,7 +28,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
+            <SavedJobsProvider>
+              {children}
+            </SavedJobsProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

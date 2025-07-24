@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react'
 import { Button } from "@/components/ui/button"
 
@@ -61,13 +63,17 @@ export default function HeroSection() {
           {/* Hero Text */}
           <div className="max-w-2xl mx-auto">
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Welcome to Indeed!
+              Find your next opportunity
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Create an account or sign in to see your personalised job recommendations.
+              Discover jobs tailored to your preferences and start your journey to success.
             </p>
-            <Button size="lg" className="bg-indeed-blue hover:bg-indeed-blue-dark px-8 py-3 text-lg text-primary-foreground">
-              Get started →
+            <Button 
+              size="lg" 
+              className="bg-indeed-blue hover:bg-indeed-blue-dark px-8 py-3 text-lg text-primary-foreground"
+              onClick={() => window.location.href = '/?q=work from home'}
+            >
+              Browse all jobs →
             </Button>
           </div>
         </div>
