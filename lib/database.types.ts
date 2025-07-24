@@ -35,7 +35,7 @@ export interface JobTitleSuggestion {
 export interface JobApplication {
   id: string
   user_id: string
-  job_id: string
+  job_id: string // Foreign key to job_postings.id
   
   // Application details
   status: 'applied' | 'interview' | 'rejected' | 'withdrawn' | 'archived'

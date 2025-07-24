@@ -76,9 +76,51 @@ export function JobApplicationsProvider({ children }: { children: React.ReactNod
     }
 
     try {
+      // Check if job posting exists, if not create it first
+      const { data: jobExists, error: jobCheckError } = await supabase
+        .from('job_postings')
+        .select('id')
+        .eq('id', job.id)
+        .single()
+
+      if (!jobExists && !jobCheckError) {
+        // Job doesn't exist, create it from mock data
+        const jobPosting = {
+          id: job.id,
+          employer_id: user.id, // Use current user as employer
+          title: job.title,
+          description: job.description,
+          company_name: job.company,
+          location: job.location,
+          job_type: job.jobType,
+          remote_allowed: job.remote,
+          salary_min: job.salary?.min,
+          salary_max: job.salary?.max,
+          salary_period: job.salary?.period,
+          salary_currency: job.salary?.currency || 'S$',
+          requirements: job.requirements,
+          benefits: job.benefits,
+          status: 'active',
+          easy_apply: job.easyApply,
+          created_at: new Date(job.postedDate).toISOString(),
+          updated_at: new Date().toISOString()
+        }
+
+        const { error: insertError } = await supabase
+          .from('job_postings')
+          .insert([jobPosting])
+
+        if (insertError) {
+          console.error('Error creating job posting:', insertError)
+          return { success: false, error: 'Failed to create job posting' }
+        }
+        
+        console.log('✅ Created job posting for:', job.title)
+      }
+
       const applicationRecord: Omit<JobApplication, 'id' | 'created_at' | 'updated_at'> = {
         user_id: user.id,
-        job_id: job.id,
+        job_id: job.id, // Foreign key to job_postings.id
         status: 'applied',
         applied_date: new Date().toISOString(),
         cover_letter: applicationData.cover_letter,
