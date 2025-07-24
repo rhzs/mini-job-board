@@ -132,145 +132,143 @@ export function EmployerOverview() {
           </CardContent>
         </Card>
 
-        {/* Campaigns Card */}
-        <Card className="col-span-1">
+        {/* Campaigns Card - Coming Soon */}
+        <Card className="col-span-1 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/90 to-background/95 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-medium text-muted-foreground mb-1">Coming Soon</p>
+              <p className="text-xs text-muted-foreground/70">Feature in development</p>
+            </div>
+          </div>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
-              <Megaphone className="h-5 w-5 mr-2 text-blue-600" />
+              <Megaphone className="h-5 w-5 mr-2 text-blue-600/50" />
               Campaigns
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground/50 mb-4">
               Manage your sponsored jobs, advertisements and more.
             </p>
             <div className="space-y-2">
-              <Button 
-                variant="link" 
-                className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/campaigns')}
-              >
+              <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
                 Create a new campaign <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-              <Button 
-                variant="link" 
-                className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/campaigns')}
-              >
+              </div>
+              <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
                 View campaign performance <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Upcoming Interviews Card */}
-        <Card className="col-span-1">
+        {/* Upcoming Interviews Card - Coming Soon */}
+        <Card className="col-span-1 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/90 to-background/95 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-medium text-muted-foreground mb-1">Coming Soon</p>
+              <p className="text-xs text-muted-foreground/70">Feature in development</p>
+            </div>
+          </div>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
-              <Calendar className="h-5 w-5 mr-2 text-purple-600" />
+              <Calendar className="h-5 w-5 mr-2 text-purple-600/50" />
               Upcoming interviews
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="mb-4">
-              <h4 className="font-medium mb-1">Upcoming interviews</h4>
-              <p className="text-sm text-muted-foreground">All jobs</p>
+              <h4 className="font-medium mb-1 text-muted-foreground/50">Upcoming interviews</h4>
+              <p className="text-sm text-muted-foreground/50">All jobs</p>
             </div>
-            <div className="flex items-center text-sm text-muted-foreground mb-4">
+            <div className="flex items-center text-sm text-muted-foreground/50 mb-4">
               <Calendar className="h-4 w-4 mr-2" />
               No upcoming interviews
             </div>
-            <Button 
-              variant="link" 
-              className="h-auto p-0 text-indeed-blue text-sm justify-start"
-              onClick={() => handleNavigation('/employer/interviews')}
-            >
+            <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
               See all upcoming interviews <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Candidates Card */}
-        <Card className="col-span-1">
+        {/* Candidates Card - Coming Soon */}
+        <Card className="col-span-1 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/90 to-background/95 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-medium text-muted-foreground mb-1">Coming Soon</p>
+              <p className="text-xs text-muted-foreground/70">Feature in development</p>
+            </div>
+          </div>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
-              <Users className="h-5 w-5 mr-2 text-orange-600" />
+              <Users className="h-5 w-5 mr-2 text-orange-600/50" />
               Candidates
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground/50 mb-4">
               Review candidates who have applied to your jobs and message applicants.
             </p>
             <div className="space-y-2">
-              <Button 
-                variant="link" 
-                className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/candidates')}
-              >
+              <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
                 Review recent candidates <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-              <Button 
-                variant="link" 
-                className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/messages')}
-              >
+              </div>
+              <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
                 View messages <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Analytics Card */}
-        <Card className="col-span-1">
+        {/* Analytics Card - Coming Soon */}
+        <Card className="col-span-1 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/90 to-background/95 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-medium text-muted-foreground mb-1">Coming Soon</p>
+              <p className="text-xs text-muted-foreground/70">Feature in development</p>
+            </div>
+          </div>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
-              <PieChart className="h-5 w-5 mr-2 text-pink-600" />
+              <PieChart className="h-5 w-5 mr-2 text-pink-600/50" />
               Analytics
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground/50 mb-4">
               Analyse performance across all the different Indeed products and services that you utilise.
             </p>
             <div className="space-y-2">
-              <Button 
-                variant="link" 
-                className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/analytics')}
-              >
+              <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
                 Go to Analytics overview <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-              <Button 
-                variant="link" 
-                className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/hiring-insights')}
-              >
+              </div>
+              <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
                 Go to Hiring Insights <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tools Card */}
-        <Card className="col-span-1">
+        {/* Tools Card - Coming Soon */}
+        <Card className="col-span-1 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-background/90 to-background/95 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-medium text-muted-foreground mb-1">Coming Soon</p>
+              <p className="text-xs text-muted-foreground/70">Feature in development</p>
+            </div>
+          </div>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
-              <Settings className="h-5 w-5 mr-2 text-gray-600" />
+              <Settings className="h-5 w-5 mr-2 text-gray-600/50" />
               Tools
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground/50 mb-4">
               Access to helpful tools to better manage your team's experience on Indeed.
             </p>
-            <Button 
-              variant="link" 
-              className="h-auto p-0 text-indeed-blue text-sm justify-start"
-              onClick={() => handleNavigation('/employer/tools')}
-            >
+            <div className="h-auto p-0 text-muted-foreground/50 text-sm flex items-center">
               View available tools <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
