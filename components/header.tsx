@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Search, MapPin } from "lucide-react"
 
 export default function Header() {
@@ -29,6 +30,7 @@ export default function Header() {
 
           {/* Right side buttons */}
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <Button variant="link" className="text-indeed-blue">
               Sign in
             </Button>
