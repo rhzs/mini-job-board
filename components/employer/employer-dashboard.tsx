@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Filter, Plus, MoreHorizontal, Star, ChevronDown, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { JobPostingModal } from './job-posting-modal'
 import { useJobPostings } from './job-postings'
 import { JobPosting } from '@/lib/database.types'
 
@@ -80,6 +81,7 @@ export function EmployerDashboard() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [titleFilter, setTitleFilter] = useState('all')
   const [locationFilter, setLocationFilter] = useState('all')
+  const [showJobModal, setShowJobModal] = useState(false)
   const router = useRouter()
 
   const handleSelectAll = (checked: boolean) => {
@@ -173,7 +175,7 @@ export function EmployerDashboard() {
         </div>
         <Button 
           className="bg-indeed-blue hover:bg-indeed-blue-dark"
-          onClick={() => router.push('/employer/post-job')}
+          onClick={() => setShowJobModal(true)}
         >
           <Plus className="h-4 w-4 mr-2" />
           Post a job
@@ -251,7 +253,10 @@ export function EmployerDashboard() {
               : "No jobs match your current filters. Try adjusting your search criteria."
             }
           </p>
-          <Button className="bg-indeed-blue hover:bg-indeed-blue-dark">
+          <Button 
+            className="bg-indeed-blue hover:bg-indeed-blue-dark"
+            onClick={() => setShowJobModal(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Post a job
           </Button>
@@ -380,6 +385,11 @@ export function EmployerDashboard() {
           </Table>
         </div>
       )}
+      
+      <JobPostingModal 
+        isOpen={showJobModal}
+        onClose={() => setShowJobModal(false)}
+      />
     </div>
   )
 } 
