@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { JobCard } from './job-card'
@@ -31,6 +32,9 @@ export interface JobFilters {
 
 export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore' }: JobSearchPageProps) {
   const { user } = useAuth()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
   const [query, setQuery] = useState(initialQuery)
   const [location, setLocation] = useState(initialLocation)
   const [selectedJobId, setSelectedJobId] = useState<string | null>(mockJobs[0]?.id || null)
@@ -38,6 +42,76 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
   const [sortBy, setSortBy] = useState<'relevance' | 'date'>('relevance')
   const [showFilters, setShowFilters] = useState(false)
   const [preferences, setPreferences] = useState<UserPreferences | null>(null)
+
+  // Parse filters from URL on mount
+  useEffect(() => {
+    const urlFilters: JobFilters = {}
+    
+    // Parse salary filter
+    const minSalary = searchParams.get('minSalary')
+    const maxSalary = searchParams.get('maxSalary')
+    if (minSalary && maxSalary) {
+      urlFilters.salary = { min: parseInt(minSalary), max: parseInt(maxSalary) }
+    }
+    
+    // Parse remote filter
+    const remote = searchParams.get('remote')
+    if (remote) {
+      urlFilters.remote = remote === 'true'
+    }
+    
+    // Parse job type filter
+    const jobType = searchParams.get('jobType')
+    if (jobType) {
+      urlFilters.jobType = jobType.split(',')
+    }
+    
+    // Parse date posted filter
+    const datePosted = searchParams.get('datePosted')
+    if (datePosted) {
+      urlFilters.datePosted = datePosted
+    }
+    
+    // Parse sort by
+    const sortParam = searchParams.get('sort')
+    if (sortParam === 'date' || sortParam === 'relevance') {
+      setSortBy(sortParam)
+    }
+    
+    if (Object.keys(urlFilters).length > 0) {
+      setFilters(urlFilters)
+    }
+  }, [searchParams])
+
+  // Update URL when search parameters change
+  const updateURL = (newQuery: string, newLocation: string, newFilters: JobFilters, newSort: string) => {
+    const params = new URLSearchParams()
+    
+    if (newQuery.trim()) params.set('q', newQuery.trim())
+    if (newLocation.trim() && newLocation !== 'Singapore') params.set('location', newLocation.trim())
+    
+    // Add filter params
+    if (newFilters.salary) {
+      params.set('minSalary', newFilters.salary.min.toString())
+      params.set('maxSalary', newFilters.salary.max.toString())
+    }
+    if (newFilters.remote !== undefined) {
+      params.set('remote', newFilters.remote.toString())
+    }
+    if (newFilters.jobType && newFilters.jobType.length > 0) {
+      params.set('jobType', newFilters.jobType.join(','))
+    }
+    if (newFilters.datePosted) {
+      params.set('datePosted', newFilters.datePosted)
+    }
+    if (newSort !== 'relevance') {
+      params.set('sort', newSort)
+    }
+    
+    const queryString = params.toString()
+    const newUrl = queryString ? `/?${queryString}` : '/'
+    router.replace(newUrl, { scroll: false })
+  }
 
   const filteredJobs = useMemo(() => {
     let jobs = [...mockJobs]
@@ -92,8 +166,19 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
   }, [query, location, filters, sortBy, preferences])
 
   const handleSearch = () => {
-    // Search is handled by the useMemo effect
-    console.log('Searching for:', query, 'in', location)
+    updateURL(query, location, filters, sortBy)
+  }
+
+  // Update URL when filters change
+  const handleFiltersChange = (newFilters: JobFilters) => {
+    setFilters(newFilters)
+    updateURL(query, location, newFilters, sortBy)
+  }
+
+  // Update URL when sort changes
+  const handleSortChange = (newSort: 'relevance' | 'date') => {
+    setSortBy(newSort)
+    updateURL(query, location, filters, newSort)
   }
 
   // Fetch user preferences on component mount
@@ -181,7 +266,7 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
             </Button>
             <JobFilters 
               filters={filters}
-              onFiltersChange={setFilters}
+              onFiltersChange={handleFiltersChange}
               compact={true}
             />
           </div>
@@ -207,7 +292,7 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
                 </span>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'relevance' | 'date')}
+                  onChange={(e) => handleSortChange(e.target.value as 'relevance' | 'date')}
                   className="text-sm border border-input rounded px-2 py-1 bg-background"
                 >
                   <option value="relevance">Sort by: {preferences ? 'best match' : 'relevance'}</option>
@@ -267,7 +352,7 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
             </div>
             <JobFilters 
               filters={filters}
-              onFiltersChange={setFilters}
+              onFiltersChange={handleFiltersChange}
               compact={false}
             />
           </div>

@@ -27,7 +27,7 @@ export default function Home() {
       <div className="flex-1">
         {showJobSearch ? (
           <JobSearchPage 
-            initialQuery={searchParams.get('q') || searchParams.get('search') || 'work from home'}
+            initialQuery={searchParams.get('q') || searchParams.get('search') || ''}
             initialLocation={searchParams.get('location') || 'Singapore'}
           />
         ) : (
