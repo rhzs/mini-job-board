@@ -7,11 +7,12 @@ import Footer from "@/components/footer"
 import HeroSection from "@/components/hero-section"
 import { JobSearchPage } from "@/components/jobs/job-search-page"
 import { PersonalizedRecommendations } from "@/components/jobs/personalized-recommendations"
+import { SupabaseDevPanel } from "@/components/dev/supabase-dev-panel"
 import { MyJobsDashboard } from "@/components/my-jobs/my-jobs-dashboard"
 import { SignInModal } from '@/components/auth/signin-modal'
 import { SignUpModal } from '@/components/auth/signup-modal'
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal'
-import { SupabaseStatus } from '@/components/auth/supabase-status'
+
 import { useAuth } from '@/lib/auth-context'
 
 // Loading component for suspense
@@ -114,9 +115,9 @@ export default function HomePage() {
       <SignInModal />
       <SignUpModal />
       <OnboardingModal />
-
-      {/* Dev Helper */}
-      <SupabaseStatus />
+      
+      {/* Development Tools - Only show in development */}
+      {process.env.NODE_ENV === 'development' && <SupabaseDevPanel />}
     </>
   )
 } 
