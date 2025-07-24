@@ -2,6 +2,9 @@ import React from 'react'
 import Header from '@/components/header'
 import HeroSection from '@/components/hero-section'
 import Footer from '@/components/footer'
+import { SignInModal } from '@/components/auth/signin-modal'
+import { SignUpModal } from '@/components/auth/signup-modal'
+import { SupabaseStatus } from '@/components/auth/supabase-status'
 
 export default function Home() {
   return (
@@ -11,6 +14,13 @@ export default function Home() {
         <HeroSection />
       </div>
       <Footer />
+      
+      {/* Auth Modals */}
+      <SignInModal />
+      <SignUpModal />
+      
+      {/* Dev Helper */}
+      <SupabaseStatus />
     </main>
   )
 } 

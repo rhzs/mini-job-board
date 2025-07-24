@@ -1,10 +1,15 @@
+"use client"
+
 import React from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Search, MapPin } from "lucide-react"
+import { Search, MapPin, User } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 export default function Header() {
+  const { user, openSignIn, signOut } = useAuth()
+
   return (
     <header className="bg-background border-b border-border">
       {/* Top Navigation */}
@@ -31,10 +36,24 @@ export default function Header() {
           {/* Right side buttons */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <Button variant="link" className="text-indeed-blue">
-              Sign in
-            </Button>
-            <span className="text-muted-foreground">|</span>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-indeed-blue" />
+                  <span className="text-sm text-foreground">{user.email}</span>
+                </div>
+                <Button variant="link" className="text-indeed-blue" onClick={signOut}>
+                  Sign out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button variant="link" className="text-indeed-blue" onClick={openSignIn}>
+                  Sign in
+                </Button>
+                <span className="text-muted-foreground">|</span>
+              </>
+            )}
             <Button variant="link" className="text-indeed-blue">
               Employers / Post
             </Button>
