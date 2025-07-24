@@ -52,7 +52,12 @@ export function SignInModal() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-              Error: {error}
+              <div className="font-medium">Error: {error}</div>
+              {error.includes('Email not confirmed') && (
+                <div className="text-xs mt-1 text-orange-600">
+                  💡 Don't worry! You can still use the app without confirming your email.
+                </div>
+              )}
             </div>
           )}
           
