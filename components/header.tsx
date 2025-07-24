@@ -35,7 +35,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Navigation */}
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-10">
             <div className="flex-shrink-0">
               <button 
                 onClick={() => handleNavigation('/')}
@@ -44,66 +44,88 @@ export default function Header() {
                 indeed
               </button>
             </div>
-            <nav className="hidden md:flex space-x-6">
+            <nav className="hidden md:flex items-center space-x-8 h-16">
               <button 
                 onClick={() => handleNavigation('/')}
-                className={`text-foreground hover:text-indeed-blue pb-4 transition-colors ${
-                  isHome ? 'border-b-2 border-indeed-blue text-indeed-blue' : 'border-b-2 border-transparent'
+                className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
+                  isHome ? 'text-indeed-blue' : 'text-foreground'
                 }`}
               >
                 Home
+                {isHome && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+                )}
               </button>
               {user && (
                 <button 
                   onClick={() => handleNavigation('/?page=my-jobs')}
-                  className={`text-foreground hover:text-indeed-blue pb-4 transition-colors ${
-                    isMyJobs ? 'border-b-2 border-indeed-blue text-indeed-blue' : 'border-b-2 border-transparent'
+                  className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
+                    isMyJobs ? 'text-indeed-blue' : 'text-foreground'
                   }`}
                 >
                   My jobs
+                  {isMyJobs && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+                  )}
                 </button>
               )}
-              <a href="#" className="text-foreground hover:text-indeed-blue pb-4 transition-colors border-b-2 border-transparent">
+              <a 
+                href="#" 
+                className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
+              >
                 Company reviews
               </a>
-              <a href="#" className="text-foreground hover:text-indeed-blue pb-4 transition-colors border-b-2 border-transparent">
+              <a 
+                href="#" 
+                className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
+              >
                 Salary guide
               </a>
             </nav>
           </div>
 
           {/* Right side buttons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <ThemeToggle />
             
             {/* Auth Section */}
             {user ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 text-sm">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-muted-foreground font-medium">
                     {user.email}
                   </span>
                 </div>
-                <Button variant="link" className="text-indeed-blue" onClick={signOut}>
+                <Button 
+                  variant="link" 
+                  className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
+                  onClick={signOut}
+                >
                   Sign out
                 </Button>
               </div>
             ) : (
-              <Button variant="link" className="text-indeed-blue" onClick={openSignIn}>
+              <Button 
+                variant="link" 
+                className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
+                onClick={openSignIn}
+              >
                 Sign in
               </Button>
             )}
             
             {/* Separator and Employers button - always visible */}
-            <span className="text-muted-foreground">|</span>
-            <Button 
-              variant="link" 
-              className="text-indeed-blue"
-              onClick={() => handleNavigation('/employer')}
-            >
-              Employers / Post Job
-            </Button>
+            <div className="flex items-center space-x-4">
+              <span className="text-muted-foreground/50">|</span>
+              <Button 
+                variant="link" 
+                className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
+                onClick={() => handleNavigation('/employer')}
+              >
+                Employers / Post Job
+              </Button>
+            </div>
           </div>
         </div>
       </div>
