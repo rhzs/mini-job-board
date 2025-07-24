@@ -277,7 +277,7 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex gap-6">
           {/* Left Sidebar - Job List */}
-          <div className="w-1/2 space-y-4">
+          <div className="w-1/3 space-y-4">
             {/* Results Header */}
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
@@ -328,11 +328,11 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
           </div>
 
           {/* Right Side - Job Details */}
-          <div className="w-1/2">
+          <div className="w-2/3 sticky top-4 h-[calc(100vh-1rem)] overflow-y-auto">
             {selectedJob ? (
               <JobDetail job={selectedJob} />
             ) : (
-              <div className="border border-border rounded-lg p-8 text-center">
+              <div className="border border-border rounded-lg p-8 text-center h-full flex items-center justify-center">
                 <p className="text-muted-foreground">Select a job to view details</p>
               </div>
             )}

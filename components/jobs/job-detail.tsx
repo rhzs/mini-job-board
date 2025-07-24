@@ -45,48 +45,67 @@ export function JobDetail({ job }: JobDetailProps) {
   }
 
   return (
-    <div className="bg-background">
-      {/* Job Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-4">
+    <div className="bg-background border border-border rounded-lg shadow-sm overflow-hidden">
+      {/* Job Header - Sticky within container */}
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-b border-border p-6 shadow-sm">
+        <h1 className="text-2xl font-bold text-foreground mb-3 leading-tight">
           {job.title}
         </h1>
         
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg text-foreground underline cursor-pointer hover:text-indeed-blue">
+          <span className="text-lg font-semibold text-indeed-blue underline cursor-pointer hover:text-indeed-blue-dark">
             {job.company}
           </span>
           <ExternalLink className="h-4 w-4 text-muted-foreground" />
         </div>
         
-        <div className="flex items-center gap-1 text-foreground mb-4">
-          <MapPin className="h-4 w-4" />
-          {job.location}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+          <div className="flex items-center gap-1">
+            <MapPin className="h-4 w-4" />
+            <span>{job.location}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            <span>{formatPostedDate(job.postedDate)}</span>
+          </div>
+          {job.salary && (
+            <div className="flex items-center gap-1">
+              <DollarSign className="h-4 w-4" />
+              <span className="font-medium text-foreground">{formatSalary(job.salary)}</span>
+            </div>
+          )}
         </div>
 
         {/* Job Type Tags */}
         <div className="flex flex-wrap gap-2 mb-6">
           {job.jobType.map((type, index) => (
-            <span key={index} className="text-foreground">
+            <span 
+              key={index} 
+              className="px-3 py-1 text-xs font-medium bg-white dark:bg-gray-800 border border-border rounded-full text-foreground"
+            >
               {type}
-              {index < job.jobType.length - 1 && ', '}
             </span>
           ))}
+          {job.remote && (
+            <span className="px-3 py-1 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700 rounded-full">
+              Remote
+            </span>
+          )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3">
           {hasApplied ? (
             <Button 
               disabled
-              className="bg-gray-200 text-gray-600 cursor-not-allowed"
+              className="bg-gray-200 text-gray-600 cursor-not-allowed hover:bg-gray-200"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Applied {application && new Date(application.applied_date).toLocaleDateString()}
             </Button>
           ) : (
             <Button 
-              className="bg-indeed-blue hover:bg-indeed-blue-dark text-white px-6"
+              size="lg"
               onClick={() => setShowApplyModal(true)}
             >
               Apply now
@@ -101,12 +120,12 @@ export function JobDetail({ job }: JobDetailProps) {
           >
             {saved ? (
               <>
-                <span className="w-4 h-4 bg-black text-white text-xs flex items-center justify-center">✓</span>
+                <CheckCircle className="h-4 w-4 text-green-600" />
                 Saved
               </>
             ) : (
               <>
-                <span className="w-4 h-4 border border-gray-400"></span>
+                <Heart className="h-4 w-4" />
                 Save
               </>
             )}
@@ -118,137 +137,158 @@ export function JobDetail({ job }: JobDetailProps) {
         </div>
       </div>
 
-      {/* Profile Insights */}
-      <div className="border border-border rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold text-foreground mb-3">Profile insights</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Here's how the job qualifications align with your{' '}
-          <span className="underline cursor-pointer text-indeed-blue">profile</span>.
-        </p>
-        
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <User className="h-5 w-5 text-muted-foreground" />
-            <span className="font-medium text-foreground">Skills</span>
-          </div>
-          
-          <div className="flex gap-2 mb-4">
-            <Button variant="outline" size="sm" className="rounded-full">
-              Teaching ▼
-            </Button>
-            <Button variant="outline" size="sm" className="rounded-full">
-              Preschool experience ▼
-            </Button>
-          </div>
-          
-          <div className="mb-4">
-            <p className="text-sm text-foreground mb-3">
-              Do you have experience in <strong>Teaching</strong>?
-            </p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">Yes</Button>
-              <Button variant="outline" size="sm">No</Button>
-              <Button variant="link" size="sm" className="text-indeed-blue">Skip</Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Job Details */}
-      <div className="border border-border rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold text-foreground mb-3">Job details</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Here's how the job details align with your{' '}
-          <span className="underline cursor-pointer text-indeed-blue">profile</span>.
-        </p>
-        
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Briefcase className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium text-foreground">Job type</span>
-            </div>
-            <div className="flex gap-2">
-              {job.jobType.map((type, index) => (
-                <Button 
-                  key={index}
-                  variant="outline" 
-                  size="sm" 
-                  className={`rounded-full ${type === 'Permanent' ? 'bg-green-100 text-green-700 border-green-200' : ''}`}
-                >
-                  {type === 'Permanent' && <CheckCircle className="h-3 w-3 mr-1" />}
-                  {type} ▼
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium text-foreground">Shift and schedule</span>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="rounded-full bg-green-100 text-green-700 border-green-200">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Day shift ▼
-              </Button>
-              <Button variant="outline" size="sm" className="rounded-full">
-                Monday to Friday ▼
-              </Button>
-              <Button variant="outline" size="sm" className="rounded-full">
-                Shift system ▼
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Location */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-foreground mb-3">Location</h2>
-        <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-muted-foreground" />
-          <span className="text-foreground">{job.location}</span>
-        </div>
-      </div>
-
-      {/* Job Description */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Full job description</h2>
-        <div className="prose prose-gray max-w-none">
-          <p className="text-foreground leading-relaxed mb-4">
-            {job.description}
+      {/* Content Area */}
+      <div className="p-6 space-y-6">
+        {/* Profile Insights */}
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Zap className="h-5 w-5 text-blue-600" />
+            Profile insights
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Here's how the job qualifications align with your{' '}
+            <span className="underline cursor-pointer text-indeed-blue">profile</span>.
           </p>
           
-          {job.requirements && job.requirements.length > 0 && (
-            <div className="mb-4">
-              <h3 className="font-semibold text-foreground mb-2">Requirements:</h3>
-              <ul className="list-disc list-inside space-y-1">
-                {job.requirements.map((req, index) => (
-                  <li key={index} className="text-foreground">{req}</li>
-                ))}
-              </ul>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-3">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-foreground">Skills</span>
             </div>
-          )}
+            
+            <div className="flex gap-2 flex-wrap mb-4">
+              <Button variant="outline" size="sm" className="rounded-full text-xs">
+                Teaching ▼
+              </Button>
+              <Button variant="outline" size="sm" className="rounded-full text-xs">
+                Preschool experience ▼
+              </Button>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-border">
+              <p className="text-sm text-foreground mb-3">
+                Do you have experience in <strong>Teaching</strong>?
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Yes</Button>
+                <Button variant="outline" size="sm">No</Button>
+                <Button variant="link" size="sm" className="text-indeed-blue">Skip</Button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          {job.benefits && job.benefits.length > 0 && (
-            <div className="mb-4">
-              <h3 className="font-semibold text-foreground mb-2">Benefits:</h3>
-              <ul className="list-disc list-inside space-y-1">
-                {job.benefits.map((benefit, index) => (
-                  <li key={index} className="text-foreground">{benefit}</li>
+        {/* Job Details */}
+        <div className="bg-white dark:bg-gray-800 border border-border rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Briefcase className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            Job details
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Here's how the job details align with your{' '}
+            <span className="underline cursor-pointer text-indeed-blue">profile</span>.
+          </p>
+          
+          <div className="space-y-6">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-foreground">Job type</span>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {job.jobType.map((type, index) => (
+                  <Button 
+                    key={index}
+                    variant="outline" 
+                    size="sm" 
+                    className={`rounded-full text-xs ${type === 'Part-time' || type === 'Freelance' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700' : ''}`}
+                  >
+                    {(type === 'Part-time' || type === 'Freelance') && <CheckCircle className="h-3 w-3 mr-1" />}
+                    {type} ▼
+                  </Button>
                 ))}
-              </ul>
+              </div>
             </div>
-          )}
 
-          {job.salary && (
-            <div className="mb-4">
-              <h3 className="font-semibold text-foreground mb-2">Salary:</h3>
-              <p className="text-foreground">{formatSalary(job.salary)}</p>
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-foreground">Shift and schedule</span>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" size="sm" className="rounded-full text-xs bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Day shift ▼
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                  Monday to Friday ▼
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                  Shift system ▼
+                </Button>
+              </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="bg-white dark:bg-gray-800 border border-border rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            Location
+          </h2>
+          <div className="flex items-center gap-2 text-foreground">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <span>{job.location}</span>
+          </div>
+        </div>
+
+        {/* Job Description */}
+        <div className="bg-white dark:bg-gray-800 border border-border rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Full job description</h2>
+          <div className="prose prose-gray max-w-none">
+            <p className="text-foreground leading-relaxed mb-4">
+              {job.description}
+            </p>
+            
+            {job.requirements && job.requirements.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  Requirements:
+                </h3>
+                <ul className="list-disc list-inside space-y-2 ml-6">
+                  {job.requirements.map((req, index) => (
+                    <li key={index} className="text-foreground">{req}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {job.benefits && job.benefits.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  Benefits:
+                </h3>
+                <ul className="list-disc list-inside space-y-2 ml-6">
+                  {job.benefits.map((benefit, index) => (
+                    <li key={index} className="text-foreground">{benefit}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {job.salary && (
+              <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  Salary:
+                </h3>
+                <p className="text-foreground font-medium text-lg">{formatSalary(job.salary)}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
