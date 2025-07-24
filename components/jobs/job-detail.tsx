@@ -1,10 +1,12 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Job } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
-import { Heart, Share2, Flag, MapPin, Star, Zap, Briefcase, Calendar, DollarSign } from 'lucide-react'
+import { Heart, Share2, Flag, MapPin, Star, Zap, Briefcase, Calendar, DollarSign, CheckCircle, Clock, ExternalLink, User } from 'lucide-react'
 import { useSaveJobButton } from './saved-jobs'
+import { useApplyToJob } from './job-applications'
+import { ApplyModal } from './apply-modal'
 
 interface JobDetailProps {
   job: Job
@@ -12,6 +14,8 @@ interface JobDetailProps {
 
 export function JobDetail({ job }: JobDetailProps) {
   const { saved, toggleSave, loading } = useSaveJobButton(job.id)
+  const { hasApplied, application } = useApplyToJob(job.id)
+  const [showApplyModal, setShowApplyModal] = useState(false)
   
   const formatSalary = (salary: Job['salary']) => {
     if (!salary) return 'Salary not specified'
@@ -41,152 +45,219 @@ export function JobDetail({ job }: JobDetailProps) {
   }
 
   return (
-    <div className="border border-border rounded-lg bg-background sticky top-24">
-      {/* Header */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              {job.title}
-            </h1>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg text-foreground">{job.company}</span>
-              {job.companyRating && (
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-current text-yellow-500" />
-                  <span className="text-sm text-muted-foreground">{job.companyRating}</span>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              {job.location}
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={toggleSave}
-              disabled={loading}
-            >
-              <Heart className={`h-4 w-4 ${saved ? 'fill-red-500 text-red-500' : ''}`} />
-            </Button>
-            <Button variant="outline" size="icon">
-              <Share2 className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon">
-              <Flag className="h-4 w-4" />
-            </Button>
-          </div>
+    <div className="bg-background">
+      {/* Job Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground mb-4">
+          {job.title}
+        </h1>
+        
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-lg text-foreground underline cursor-pointer hover:text-indeed-blue">
+            {job.company}
+          </span>
+          <ExternalLink className="h-4 w-4 text-muted-foreground" />
+        </div>
+        
+        <div className="flex items-center gap-1 text-foreground mb-4">
+          <MapPin className="h-4 w-4" />
+          {job.location}
         </div>
 
-        {/* Quick Info */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* Job Type Tags */}
+        <div className="flex flex-wrap gap-2 mb-6">
           {job.jobType.map((type, index) => (
-            <span key={index} className="bg-muted px-3 py-1 rounded-full text-sm">
+            <span key={index} className="text-foreground">
               {type}
+              {index < job.jobType.length - 1 && ', '}
             </span>
           ))}
-          {job.remote && (
-            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-              Remote
-            </span>
-          )}
         </div>
 
-        {job.responseRate && (
-          <div className="flex items-center gap-2 text-sm text-blue-600 mb-4">
-            <Zap className="h-4 w-4" />
-            {job.responseRate}
-          </div>
-        )}
-
-        {/* Apply Button */}
-        <div className="flex gap-3">
-          <Button className="flex-1 bg-indeed-blue hover:bg-indeed-blue-dark h-12">
-            Apply now
-          </Button>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3 mb-8">
+          {hasApplied ? (
+            <Button 
+              disabled
+              className="bg-gray-200 text-gray-600 cursor-not-allowed"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Applied {application && new Date(application.applied_date).toLocaleDateString()}
+            </Button>
+          ) : (
+            <Button 
+              className="bg-indeed-blue hover:bg-indeed-blue-dark text-white px-6"
+              onClick={() => setShowApplyModal(true)}
+            >
+              Apply now
+            </Button>
+          )}
+          
           <Button 
-            variant="outline" 
-            className="h-12"
+            variant="outline"
             onClick={toggleSave}
             disabled={loading}
+            className="flex items-center gap-2"
           >
-            {saved ? 'Saved' : 'Save'}
+            {saved ? (
+              <>
+                <span className="w-4 h-4 bg-black text-white text-xs flex items-center justify-center">✓</span>
+                Saved
+              </>
+            ) : (
+              <>
+                <span className="w-4 h-4 border border-gray-400"></span>
+                Save
+              </>
+            )}
           </Button>
+          
+          <Button variant="outline" size="icon">
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Profile Insights */}
+      <div className="border border-border rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold text-foreground mb-3">Profile insights</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Here's how the job qualifications align with your{' '}
+          <span className="underline cursor-pointer text-indeed-blue">profile</span>.
+        </p>
+        
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <User className="h-5 w-5 text-muted-foreground" />
+            <span className="font-medium text-foreground">Skills</span>
+          </div>
+          
+          <div className="flex gap-2 mb-4">
+            <Button variant="outline" size="sm" className="rounded-full">
+              Teaching ▼
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-full">
+              Preschool experience ▼
+            </Button>
+          </div>
+          
+          <div className="mb-4">
+            <p className="text-sm text-foreground mb-3">
+              Do you have experience in <strong>Teaching</strong>?
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">Yes</Button>
+              <Button variant="outline" size="sm">No</Button>
+              <Button variant="link" size="sm" className="text-indeed-blue">Skip</Button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Job Details */}
-      <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-        {/* Salary & Benefits */}
-        <div>
-          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Pay
-          </h3>
-          <p className="text-muted-foreground mb-4">{formatSalary(job.salary)}</p>
+      <div className="border border-border rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold text-foreground mb-3">Job details</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Here's how the job details align with your{' '}
+          <span className="underline cursor-pointer text-indeed-blue">profile</span>.
+        </p>
+        
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Briefcase className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium text-foreground">Job type</span>
+            </div>
+            <div className="flex gap-2">
+              {job.jobType.map((type, index) => (
+                <Button 
+                  key={index}
+                  variant="outline" 
+                  size="sm" 
+                  className={`rounded-full ${type === 'Permanent' ? 'bg-green-100 text-green-700 border-green-200' : ''}`}
+                >
+                  {type === 'Permanent' && <CheckCircle className="h-3 w-3 mr-1" />}
+                  {type} ▼
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium text-foreground">Shift and schedule</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="rounded-full bg-green-100 text-green-700 border-green-200">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Day shift ▼
+              </Button>
+              <Button variant="outline" size="sm" className="rounded-full">
+                Monday to Friday ▼
+              </Button>
+              <Button variant="outline" size="sm" className="rounded-full">
+                Shift system ▼
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Location */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-foreground mb-3">Location</h2>
+        <div className="flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-muted-foreground" />
+          <span className="text-foreground">{job.location}</span>
+        </div>
+      </div>
+
+      {/* Job Description */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">Full job description</h2>
+        <div className="prose prose-gray max-w-none">
+          <p className="text-foreground leading-relaxed mb-4">
+            {job.description}
+          </p>
           
-          {job.benefits.length > 0 && (
-            <div>
-              <h4 className="font-medium text-foreground mb-2">Benefits</h4>
-              <div className="flex flex-wrap gap-2">
-                {job.benefits.map((benefit, index) => (
-                  <span key={index} className="bg-muted px-3 py-1 rounded-full text-sm">
-                    {benefit}
-                  </span>
+          {job.requirements && job.requirements.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-foreground mb-2">Requirements:</h3>
+              <ul className="list-disc list-inside space-y-1">
+                {job.requirements.map((req, index) => (
+                  <li key={index} className="text-foreground">{req}</li>
                 ))}
-              </div>
+              </ul>
+            </div>
+          )}
+
+          {job.benefits && job.benefits.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-foreground mb-2">Benefits:</h3>
+              <ul className="list-disc list-inside space-y-1">
+                {job.benefits.map((benefit, index) => (
+                  <li key={index} className="text-foreground">{benefit}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {job.salary && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-foreground mb-2">Salary:</h3>
+              <p className="text-foreground">{formatSalary(job.salary)}</p>
             </div>
           )}
         </div>
-
-        {/* Job Type */}
-        <div>
-          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            Job type
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {job.jobType.map((type, index) => (
-              <span key={index} className="bg-muted px-3 py-1 rounded-full text-sm">
-                {type}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Job Description */}
-        <div>
-          <h3 className="font-semibold text-foreground mb-3">Job Description</h3>
-          <div className="prose prose-sm max-w-none text-muted-foreground">
-            <p>{job.description}</p>
-          </div>
-        </div>
-
-        {/* Requirements */}
-        {job.requirements.length > 0 && (
-          <div>
-            <h3 className="font-semibold text-foreground mb-3">Requirements</h3>
-            <ul className="space-y-2 text-muted-foreground">
-              {job.requirements.map((req, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-indeed-blue mt-1">•</span>
-                  {req}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Posted Date */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t border-border">
-          <Calendar className="h-4 w-4" />
-          Posted {formatPostedDate(job.postedDate)}
-        </div>
       </div>
+
+      {/* Apply Modal */}
+      <ApplyModal 
+        job={job}
+        isOpen={showApplyModal}
+        onClose={() => setShowApplyModal(false)}
+      />
     </div>
   )
 } 
