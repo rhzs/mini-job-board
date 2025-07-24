@@ -58,9 +58,9 @@ export function PersonalizedRecommendations() {
   const handleViewAll = () => {
     if (preferences?.job_titles && preferences.job_titles.length > 0) {
       const query = preferences.job_titles[0] // Use first job title as search query
-      router.push(`/jobs?q=${encodeURIComponent(query)}`)
+      router.push(`/?q=${encodeURIComponent(query)}`)
     } else {
-      router.push('/jobs')
+      router.push('/')
     }
   }
 
@@ -81,7 +81,7 @@ export function PersonalizedRecommendations() {
               Sign up to receive job recommendations tailored to your skills, experience, and preferences.
             </p>
             <Button 
-              onClick={() => router.push('/jobs')}
+              onClick={() => router.push('/')}
               className="bg-indeed-blue hover:bg-indeed-blue-dark"
             >
               Browse All Jobs
@@ -130,7 +130,7 @@ export function PersonalizedRecommendations() {
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => router.push('/jobs')}
+                onClick={() => router.push('/')}
               >
                 Browse All Jobs
               </Button>
@@ -184,7 +184,7 @@ export function PersonalizedRecommendations() {
                 <JobCard
                   job={recommendation.job}
                   isSelected={false}
-                  onClick={() => router.push(`/jobs?job=${recommendation.job.id}`)}
+                  onClick={() => router.push(`/job/${recommendation.job.id}`)}
                 />
                 {/* Match Badge Overlay */}
                 <div className="absolute top-3 right-3">

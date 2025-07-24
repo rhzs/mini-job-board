@@ -6,11 +6,13 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import HeroSection from "@/components/hero-section"
 import { JobSearchPage } from "@/components/jobs/job-search-page"
+import { PersonalizedRecommendations } from "@/components/jobs/personalized-recommendations"
 import { MyJobsDashboard } from "@/components/my-jobs/my-jobs-dashboard"
 import { SignInModal } from '@/components/auth/signin-modal'
 import { SignUpModal } from '@/components/auth/signup-modal'
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal'
 import { SupabaseStatus } from '@/components/auth/supabase-status'
+import { useAuth } from '@/lib/auth-context'
 
 // Loading component for suspense
 function PageLoading() {
@@ -33,9 +35,15 @@ function PageLoading() {
 
 function PageContent() {
   const searchParams = useSearchParams()
+  const { user, loading: authLoading } = useAuth()
   const currentPage = searchParams.get('page')
   const query = searchParams.get('q') || ''
   const location = searchParams.get('location') || ''
+
+  // Show loading if auth is still loading
+  if (authLoading) {
+    return <PageLoading />
+  }
 
   // Show My Jobs dashboard when page=my-jobs
   if (currentPage === 'my-jobs') {
@@ -50,20 +58,27 @@ function PageContent() {
     )
   }
 
-  // Show job search if there's a query, otherwise show homepage
-  if (query || location) {
+  // Show job search if there's a query OR if user is logged in (for homepage)
+  if (query || location || user) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="flex-1">
-          <JobSearchPage initialQuery={query} initialLocation={location} />
+          <JobSearchPage 
+            initialQuery={query} 
+            initialLocation={location || 'Singapore'} 
+          />
+          {/* Show personalized recommendations for logged-in users on homepage (no search query) */}
+          {user && !query && !location && (
+            <PersonalizedRecommendations />
+          )}
         </main>
         <Footer />
       </div>
     )
   }
 
-  // Homepage
+  // Homepage for anonymous users
   return (
     <div className="min-h-screen bg-background">
       <Header />
