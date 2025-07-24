@@ -1,7 +1,7 @@
 "use client"
 
-import React, { Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import React, { Suspense, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import HeroSection from "@/components/hero-section"
@@ -36,17 +36,30 @@ function PageLoading() {
 function PageContent() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const currentPage = searchParams.get('page')
   const query = searchParams.get('q') || ''
   const location = searchParams.get('location') || ''
+
+  // Redirect to home if trying to access My Jobs without authentication
+  useEffect(() => {
+    if (!authLoading && !user && currentPage === 'my-jobs') {
+      router.push('/')
+    }
+  }, [user, authLoading, currentPage, router])
 
   // Show loading if auth is still loading
   if (authLoading) {
     return <PageLoading />
   }
 
-  // Show My Jobs dashboard when page=my-jobs
+  // Show My Jobs dashboard when page=my-jobs (only if user is authenticated)
   if (currentPage === 'my-jobs') {
+    if (!user) {
+      // This will trigger the redirect effect above, show loading meanwhile
+      return <PageLoading />
+    }
+    
     return (
       <div className="min-h-screen bg-background">
         <Header />

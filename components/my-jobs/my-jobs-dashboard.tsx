@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useJobApplications } from '@/components/jobs/job-applications'
 import { useSavedJobs } from '@/components/jobs/saved-jobs'
@@ -45,8 +45,20 @@ export function MyJobsDashboard() {
   const { savedJobs, loading: savedJobsLoading } = useSavedJobs()
   const router = useRouter()
 
+  // Redirect to home if user is not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/')
+    }
+  }, [user, authLoading, router])
+
   // Show loading state if auth is loading OR if either data source is still loading
   const isLoading = authLoading || applicationsLoading || savedJobsLoading
+
+  // Don't render anything if user is not authenticated (will redirect)
+  if (!authLoading && !user) {
+    return null
+  }
 
   // Filter applications by status
   const appliedJobs = applications.filter(app => app.status === 'applied')
