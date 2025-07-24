@@ -12,9 +12,12 @@ interface AuthContextType {
   signOut: () => Promise<void>
   showSignIn: boolean
   showSignUp: boolean
+  showOnboarding: boolean
   openSignIn: () => void
   openSignUp: () => void
+  openOnboarding: () => void
   closeModals: () => void
+  closeOnboarding: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -24,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [showSignIn, setShowSignIn] = useState(false)
   const [showSignUp, setShowSignUp] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -38,10 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         setLoading(false)
         
-        // Close modals on successful auth
+        // Close modals on successful auth and check onboarding
         if (event === 'SIGNED_IN') {
           setShowSignIn(false)
           setShowSignUp(false)
+          checkOnboardingStatus(session?.user || null)
         }
       }
     )
@@ -88,10 +93,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message }
       }
       
+      // If signup successful, trigger onboarding for new users
+      if (data.user && !error) {
+        setShowSignUp(false)
+        setShowOnboarding(true)
+      }
+      
       return {}
     } catch (error) {
       console.error('Unexpected signup error:', error)
       return { error: 'An unexpected error occurred' }
+    }
+  }
+
+  const checkOnboardingStatus = async (user: User | null) => {
+    if (!user) return
+
+    try {
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('onboarding_completed')
+        .eq('user_id', user.id)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking onboarding status:', error)
+        return
+      }
+
+      // If no preferences found or onboarding not completed, show onboarding
+      if (!data || !data.onboarding_completed) {
+        setShowOnboarding(true)
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error)
     }
   }
 
@@ -109,9 +144,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setShowSignIn(false)
   }
 
+  const openOnboarding = () => {
+    setShowOnboarding(true)
+  }
+
   const closeModals = () => {
     setShowSignIn(false)
     setShowSignUp(false)
+  }
+
+  const closeOnboarding = () => {
+    setShowOnboarding(false)
   }
 
   const value = {
@@ -122,9 +165,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     showSignIn,
     showSignUp,
+    showOnboarding,
     openSignIn,
     openSignUp,
+    openOnboarding,
     closeModals,
+    closeOnboarding,
   }
 
   return (

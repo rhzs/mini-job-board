@@ -5,6 +5,7 @@ import Footer from '@/components/footer'
 import { SignInModal } from '@/components/auth/signin-modal'
 import { SignUpModal } from '@/components/auth/signup-modal'
 import { SupabaseStatus } from '@/components/auth/supabase-status'
+import { OnboardingModal } from '@/components/onboarding/onboarding-modal'
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       {/* Auth Modals */}
       <SignInModal />
       <SignUpModal />
+      <OnboardingModal />
       
       {/* Dev Helper */}
       <SupabaseStatus />
