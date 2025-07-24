@@ -16,18 +16,24 @@ interface SavedJobsContextType {
 const SavedJobsContext = createContext<SavedJobsContextType | undefined>(undefined)
 
 export function SavedJobsProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [savedJobs, setSavedJobs] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Don't update loading state if auth is still loading
+    if (authLoading) {
+      setLoading(true)
+      return
+    }
+
     if (user) {
       fetchSavedJobs()
     } else {
       setSavedJobs([])
       setLoading(false)
     }
-  }, [user])
+  }, [user, authLoading])
 
   const fetchSavedJobs = async () => {
     if (!user) return

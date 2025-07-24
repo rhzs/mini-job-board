@@ -1,48 +1,87 @@
 "use client"
 
-import React from 'react'
-
-import Header from '@/components/header'
-import HeroSection from '@/components/hero-section'
-import Footer from '@/components/footer'
+import React, { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Header from "@/components/header"
+import Footer from "@/components/footer"
+import HeroSection from "@/components/hero-section"
+import { JobSearchPage } from "@/components/jobs/job-search-page"
+import { MyJobsDashboard } from "@/components/my-jobs/my-jobs-dashboard"
 import { SignInModal } from '@/components/auth/signin-modal'
 import { SignUpModal } from '@/components/auth/signup-modal'
-import { SupabaseStatus } from '@/components/auth/supabase-status'
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal'
-import { PersonalizedRecommendations } from '@/components/jobs/personalized-recommendations'
-import { JobSearchPage } from '@/components/jobs/job-search-page'
-import { MyJobsDashboard } from '@/components/my-jobs/my-jobs-dashboard'
-import { useAuth } from '@/lib/auth-context'
-import { useSearchParams } from 'next/navigation'
+import { SupabaseStatus } from '@/components/auth/supabase-status'
 
-export default function Home() {
-  const { user } = useAuth()
-  const searchParams = useSearchParams()
-  
-  // Check if user is authenticated or if search params exist (job search mode)
-  const showJobSearch = user || searchParams.get('q') || searchParams.get('search')
-  const showMyJobs = searchParams.get('page') === 'my-jobs'
-
+// Loading component for suspense
+function PageLoading() {
   return (
-    <main className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-background">
       <Header />
-      <div className="flex-1">
-        {showMyJobs ? (
-          <MyJobsDashboard />
-        ) : showJobSearch ? (
-          <JobSearchPage 
-            initialQuery={searchParams.get('q') || searchParams.get('search') || ''}
-            initialLocation={searchParams.get('location') || 'Singapore'}
-          />
-        ) : (
-          <>
-            <HeroSection />
-            <PersonalizedRecommendations />
-          </>
-        )}
-      </div>
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="h-32 bg-muted rounded"></div>
+            <div className="h-64 bg-muted rounded"></div>
+          </div>
+        </div>
+      </main>
       <Footer />
+    </div>
+  )
+}
 
+function PageContent() {
+  const searchParams = useSearchParams()
+  const currentPage = searchParams.get('page')
+  const query = searchParams.get('q') || ''
+  const location = searchParams.get('location') || ''
+
+  // Show My Jobs dashboard when page=my-jobs
+  if (currentPage === 'my-jobs') {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="flex-1">
+          <MyJobsDashboard />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Show job search if there's a query, otherwise show homepage
+  if (query || location) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="flex-1">
+          <JobSearchPage initialQuery={query} initialLocation={location} />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Homepage
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="flex-1">
+        <HeroSection />
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <>
+      <Suspense fallback={<PageLoading />}>
+        <PageContent />
+      </Suspense>
+      
       {/* Auth Modals */}
       <SignInModal />
       <SignUpModal />
@@ -50,6 +89,6 @@ export default function Home() {
 
       {/* Dev Helper */}
       <SupabaseStatus />
-    </main>
+    </>
   )
 } 

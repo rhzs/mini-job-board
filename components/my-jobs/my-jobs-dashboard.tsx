@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useJobApplications } from '@/components/jobs/job-applications'
 import { useSavedJobs } from '@/components/jobs/saved-jobs'
+import { useAuth } from '@/lib/auth-context'
 import { JobApplication } from '@/lib/database.types'
 import { mockJobs } from '@/lib/mock-data'
 import { Heart, ExternalLink, Calendar, MoreVertical, Search } from 'lucide-react'
@@ -11,11 +12,41 @@ import { useRouter } from 'next/navigation'
 
 type TabType = 'saved' | 'applied' | 'interviews' | 'archived'
 
+// Loading skeleton component
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="border border-border rounded-lg p-6 bg-background">
+          <div className="animate-pulse">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="h-5 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/3 mb-3"></div>
+                <div className="h-4 bg-muted rounded w-1/4"></div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-20 bg-muted rounded"></div>
+                <div className="h-8 w-8 bg-muted rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function MyJobsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('saved')
-  const { applications, updateApplicationStatus } = useJobApplications()
-  const { savedJobs } = useSavedJobs()
+  const { user, loading: authLoading } = useAuth()
+  const { applications, updateApplicationStatus, loading: applicationsLoading } = useJobApplications()
+  const { savedJobs, loading: savedJobsLoading } = useSavedJobs()
   const router = useRouter()
+
+  // Show loading state if auth is loading OR if either data source is still loading
+  const isLoading = authLoading || applicationsLoading || savedJobsLoading
 
   // Filter applications by status
   const appliedJobs = applications.filter(app => app.status === 'applied')
@@ -80,7 +111,9 @@ export function MyJobsDashboard() {
                 }`}
               >
                 <div className="flex flex-col items-center">
-                  <span className="text-lg font-bold">{tab.count}</span>
+                  <span className="text-lg font-bold">
+                    {isLoading ? '—' : tab.count}
+                  </span>
                   <span>{tab.label}</span>
                 </div>
               </button>
@@ -89,7 +122,9 @@ export function MyJobsDashboard() {
         </div>
 
         {/* Content */}
-        {hasJobs ? (
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : hasJobs ? (
           <div className="space-y-4">
             {currentJobs.map((item, index) => (
               <JobItemCard

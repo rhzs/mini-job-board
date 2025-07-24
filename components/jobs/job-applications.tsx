@@ -20,18 +20,25 @@ interface JobApplicationsContextType {
 const JobApplicationsContext = createContext<JobApplicationsContextType | undefined>(undefined)
 
 export function JobApplicationsProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [applications, setApplications] = useState<JobApplication[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // Start with loading true
 
   // Fetch user applications when user changes
   useEffect(() => {
+    // Don't update loading state if auth is still loading
+    if (authLoading) {
+      setLoading(true)
+      return
+    }
+
     if (user) {
       fetchApplications()
     } else {
       setApplications([])
+      setLoading(false)
     }
-  }, [user])
+  }, [user, authLoading])
 
   const fetchApplications = async () => {
     if (!user) return
