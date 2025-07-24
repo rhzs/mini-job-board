@@ -97,7 +97,11 @@ export default function Header() {
             
             {/* Separator and Employers button - always visible */}
             <span className="text-muted-foreground">|</span>
-            <Button variant="link" className="text-indeed-blue">
+            <Button 
+              variant="link" 
+              className="text-indeed-blue"
+              onClick={() => handleNavigation('/employer')}
+            >
               Employers / Post Job
             </Button>
           </div>

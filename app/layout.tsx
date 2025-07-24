@@ -6,12 +6,13 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/lib/auth-context'
 import { SavedJobsProvider } from '@/components/jobs/saved-jobs'
 import { JobApplicationsProvider } from '@/components/jobs/job-applications'
+import { JobPostingsProvider } from '@/components/employer/job-postings'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Indeed - Find jobs, employment & career opportunities',
-  description: 'Search millions of jobs from thousands of job sites, job boards, newspaper classifieds and company websites on indeed.com',
+  title: 'Indeed Clone',
+  description: 'Job board application',
 }
 
 export default function RootLayout({
@@ -31,7 +32,9 @@ export default function RootLayout({
                   <AuthProvider>
           <SavedJobsProvider>
             <JobApplicationsProvider>
-              {children}
+              <JobPostingsProvider>
+                {children}
+              </JobPostingsProvider>
             </JobApplicationsProvider>
           </SavedJobsProvider>
         </AuthProvider>

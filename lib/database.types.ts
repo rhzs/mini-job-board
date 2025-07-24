@@ -62,4 +62,74 @@ export interface ApplicationFormData {
   cover_letter: string
   resume_url?: string
   why_interested: string
+}
+
+export interface JobPosting {
+  id: string
+  employer_id: string // user_id of the employer
+  
+  // Job details
+  title: string
+  description: string
+  company_name: string
+  location: string
+  job_type: string[] // ['Full-time', 'Part-time', 'Contract', 'Freelance']
+  remote_allowed: boolean
+  
+  // Salary information
+  salary_min?: number
+  salary_max?: number
+  salary_period?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  salary_currency?: string
+  
+  // Requirements and benefits
+  requirements?: string[]
+  benefits?: string[]
+  experience_level?: 'Entry' | 'Mid' | 'Senior' | 'Lead' | 'Executive'
+  
+  // Posting management
+  status: 'draft' | 'pending' | 'active' | 'paused' | 'closed' | 'expired'
+  is_featured?: boolean
+  is_sponsored?: boolean
+  featured_until?: string
+  
+  // Application settings
+  easy_apply: boolean
+  external_apply_url?: string
+  application_deadline?: string
+  
+  // Contact information
+  contact_email?: string
+  company_website?: string
+  
+  // Analytics
+  view_count: number
+  application_count: number
+  
+  // Metadata
+  posted_date: string
+  last_updated: string
+  created_at: string
+  updated_at: string
+}
+
+export interface JobPostingFormData {
+  title: string
+  description: string
+  company_name: string
+  location: string
+  job_type: string[]
+  remote_allowed: boolean
+  salary_min?: number
+  salary_max?: number
+  salary_period?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  salary_currency?: string
+  requirements?: string[]
+  benefits?: string[]
+  experience_level?: 'Entry' | 'Mid' | 'Senior' | 'Lead' | 'Executive'
+  easy_apply: boolean
+  external_apply_url?: string
+  application_deadline?: string
+  contact_email?: string
+  company_website?: string
 } 
