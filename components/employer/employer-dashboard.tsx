@@ -171,7 +171,10 @@ export function EmployerDashboard() {
             </Button>
           </div>
         </div>
-        <Button className="bg-indeed-blue hover:bg-indeed-blue-dark">
+        <Button 
+          className="bg-indeed-blue hover:bg-indeed-blue-dark"
+          onClick={() => router.push('/employer/post-job')}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Post a job
         </Button>

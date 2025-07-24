@@ -3,7 +3,7 @@
 import React from 'react'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
-import { EmployerDashboard } from '@/components/employer/employer-dashboard'
+import { EmployerOverview } from '@/components/employer/employer-overview'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -49,7 +49,7 @@ export default function EmployerPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="flex-1">
-        <EmployerDashboard />
+        <EmployerOverview />
       </main>
       <Footer />
     </div>
