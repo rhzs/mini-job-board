@@ -1,18 +1,34 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { User } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
-import { useSearchParams } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
 export default function Header() {
   const { user, openSignIn, signOut } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
-  const currentPage = searchParams.get('page')
+  const [mounted, setMounted] = useState(false)
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Determine current page state after hydration
+  const currentPage = mounted ? searchParams.get('page') : null
+  const searchQuery = mounted ? searchParams.get('q') : null
+  
   const isMyJobs = currentPage === 'my-jobs'
-  const isHome = !currentPage && !searchParams.get('q')
+  const isHome = pathname === '/' && !currentPage && !searchQuery
+
+  const handleNavigation = (path: string) => {
+    router.push(path)
+  }
 
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -22,7 +38,7 @@ export default function Header() {
           <div className="flex items-center space-x-8">
             <div className="flex-shrink-0">
               <button 
-                onClick={() => window.location.href = '/'}
+                onClick={() => handleNavigation('/')}
                 className="text-2xl font-bold text-indeed-blue hover:text-indeed-blue-dark transition-colors"
               >
                 indeed
@@ -30,7 +46,7 @@ export default function Header() {
             </div>
             <nav className="hidden md:flex space-x-6">
               <button 
-                onClick={() => window.location.href = '/'}
+                onClick={() => handleNavigation('/')}
                 className={`text-foreground hover:text-indeed-blue pb-4 transition-colors ${
                   isHome ? 'border-b-2 border-indeed-blue text-indeed-blue' : 'border-b-2 border-transparent'
                 }`}
@@ -39,7 +55,7 @@ export default function Header() {
               </button>
               {user && (
                 <button 
-                  onClick={() => window.location.href = '/?page=my-jobs'}
+                  onClick={() => handleNavigation('/?page=my-jobs')}
                   className={`text-foreground hover:text-indeed-blue pb-4 transition-colors ${
                     isMyJobs ? 'border-b-2 border-indeed-blue text-indeed-blue' : 'border-b-2 border-transparent'
                   }`}
@@ -60,6 +76,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <ThemeToggle />
             
+            {/* Auth Section */}
             {user ? (
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
@@ -73,19 +90,18 @@ export default function Header() {
                 </Button>
               </div>
             ) : (
-              <>
-                <Button variant="link" className="text-indeed-blue" onClick={openSignIn}>
-                  Sign in
-                </Button>
-                <span className="text-muted-foreground">|</span>
-              </>
+              <Button variant="link" className="text-indeed-blue" onClick={openSignIn}>
+                Sign in
+              </Button>
             )}
+            
+            {/* Separator and Employers button - always visible */}
+            <span className="text-muted-foreground">|</span>
             <Button variant="link" className="text-indeed-blue">
               Employers / Post Job
             </Button>
           </div>
         </div>
-
       </div>
     </header>
   )
