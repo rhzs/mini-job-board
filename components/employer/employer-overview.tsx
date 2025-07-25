@@ -113,7 +113,7 @@ export function EmployerOverview() {
             <p className="text-sm text-muted-foreground mb-4">
               Post, edit and manage your jobs posted on Indeed as well as jobs on your company's careers site.
             </p>
-            <div className="space-y-2">
+            <div className="space-y-6">
               <Button 
                 variant="link" 
                 className="h-auto p-0 text-indeed-blue text-sm justify-start"
@@ -121,13 +121,16 @@ export function EmployerOverview() {
               >
                 Post a job <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
-              <Button 
-                variant="link" 
-                className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/jobs')}
-              >
-                View jobs posted by me <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
+              
+              <div className="border-t border-border pt-4">
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0 text-indeed-blue text-sm justify-start"
+                  onClick={() => handleNavigation('/employer/jobs')}
+                >
+                  View jobs posted by me <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

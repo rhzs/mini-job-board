@@ -251,19 +251,25 @@ export function JobDetail({ job }: JobDetailProps) {
               {job.description}
             </p>
             
-            {job.requirements && job.requirements.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  Requirements:
-                </h3>
-                <ul className="list-disc list-inside space-y-2 ml-6">
-                  {job.requirements.map((req, index) => (
-                    <li key={index} className="text-foreground">{req}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {job.requirements && job.requirements.length > 0 && (() => {
+              // Filter out requirements that are the same as the job description to avoid duplication
+              const uniqueRequirements = job.requirements.filter(req => 
+                req.trim() !== job.description.trim()
+              );
+              return uniqueRequirements.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Requirements:
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-6">
+                    {uniqueRequirements.map((req, index) => (
+                      <li key={index} className="text-foreground">{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })()}
 
             {job.benefits && job.benefits.length > 0 && (
               <div className="mb-6">

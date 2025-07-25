@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,8 @@ import { useJobPostings } from './job-postings'
 interface JobPostingModalProps {
   isOpen: boolean
   onClose: () => void
+  existingJob?: any
+  mode?: 'create' | 'edit'
 }
 
 interface JobFormData {
@@ -81,9 +83,14 @@ const initialFormData: JobFormData = {
       companyId: 'recruit-express-sg'
 }
 
-export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
+export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' }: JobPostingModalProps) {
   const [currentStep, setCurrentStep] = useState(() => {
-    // Restore step from localStorage if available
+    // In edit mode, skip template selection and start from step 2
+    if (mode === 'edit') {
+      return 2
+    }
+    
+    // Restore step from localStorage if available (only for create mode)
     if (typeof window !== 'undefined') {
       const savedStep = localStorage.getItem('jobPostingStep')
       if (savedStep) {
@@ -96,8 +103,39 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
     return 1
   })
   const [formData, setFormData] = useState<JobFormData>(() => {
-    // Load from localStorage if available
-    if (typeof window !== 'undefined') {
+    // If editing, use existing job data
+    if (mode === 'edit' && existingJob) {
+      return {
+        useTemplate: false,
+        title: existingJob.title || '',
+        location: existingJob.location || 'Jakarta',
+        language: 'English', // Default for now
+        country: 'Indonesia', // Default for now
+        jobType: existingJob.job_type?.[0] || 'Full-time', // Take first job type
+        hasStartDate: false, // No start_date field in JobPosting
+        startDate: '',
+        showPayBy: existingJob.salary_min && existingJob.salary_max ? 'Range' : 'Starting amount',
+        minPay: existingJob.salary_min?.toString() || '',
+        maxPay: existingJob.salary_max?.toString() || '',
+        payRate: existingJob.salary_period ? `per ${existingJob.salary_period}` : 'per month',
+        dealBreakerQuestions: [], // No direct mapping in JobPosting
+        screeningQuestions: [], // No direct mapping in JobPosting
+        description: existingJob.description || '',
+        applicationEmail: existingJob.contact_email || '',
+        requireCV: true, // Default
+        allowCandidateContact: true, // Default
+        hasDeadline: !!existingJob.application_deadline,
+        deadline: existingJob.application_deadline || '',
+        expectedStartDate: '', // No direct mapping in JobPosting
+        hiringCount: 1, // Default
+        contactName: '', // No direct mapping in JobPosting
+        phoneNumber: '', // No direct mapping in JobPosting
+        companyId: existingJob.company_id || 'recruit-express-sg'
+      }
+    }
+    
+    // Load from localStorage if available (only for create mode)
+    if (mode === 'create' && typeof window !== 'undefined') {
       const saved = localStorage.getItem('jobPostingDraft')
       if (saved) {
         try {
@@ -109,10 +147,48 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
     }
     return initialFormData
   })
-  const { createJobPosting } = useJobPostings()
+  const { createJobPosting, updateJobPosting } = useJobPostings()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const totalSteps = 8
+  // Reset form data when existingJob changes (for edit mode)
+  useEffect(() => {
+    if (mode === 'edit' && existingJob) {
+      setFormData({
+        useTemplate: false,
+        title: existingJob.title || '',
+        location: existingJob.location || 'Jakarta',
+        language: 'English',
+        country: 'Indonesia',
+        jobType: existingJob.job_type?.[0] || 'Full-time',
+        hasStartDate: false,
+        startDate: '',
+        showPayBy: existingJob.salary_min && existingJob.salary_max ? 'Range' : 'Starting amount',
+        minPay: existingJob.salary_min?.toString() || '',
+        maxPay: existingJob.salary_max?.toString() || '',
+        payRate: existingJob.salary_period ? `per ${existingJob.salary_period}` : 'per month',
+        dealBreakerQuestions: [],
+        screeningQuestions: [],
+        description: existingJob.description || '',
+        applicationEmail: existingJob.contact_email || '',
+        requireCV: true,
+        allowCandidateContact: true,
+        hasDeadline: !!existingJob.application_deadline,
+        deadline: existingJob.application_deadline || '',
+        expectedStartDate: '',
+        hiringCount: 1,
+        contactName: '',
+        phoneNumber: '',
+        companyId: existingJob.company_id || 'recruit-express-sg'
+      })
+      setCurrentStep(2) // Start at basics step for edit mode
+    }
+  }, [existingJob, mode])
+
+  const totalSteps = mode === 'edit' ? 7 : 8
+
+  const getDisplayStep = () => {
+    return mode === 'edit' ? currentStep - 1 : currentStep
+  }
 
   const updateFormData = (updates: Partial<JobFormData>) => {
     const newData = { ...formData, ...updates }
@@ -125,7 +201,8 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
   }
 
   const handleNext = () => {
-    if (currentStep < totalSteps) {
+    const maxStep = mode === 'edit' ? 8 : totalSteps
+    if (currentStep < maxStep) {
       const newStep = currentStep + 1
       setCurrentStep(newStep)
       // Save current step to localStorage
@@ -136,7 +213,8 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
   }
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    const minStep = mode === 'edit' ? 2 : 1
+    if (currentStep > minStep) {
       const newStep = currentStep - 1
       setCurrentStep(newStep)
       // Save current step to localStorage
@@ -149,7 +227,7 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      await createJobPosting({
+      const jobData = {
         title: formData.title,
         location: formData.location,
         job_type: [formData.jobType],
@@ -159,14 +237,20 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
         salary_period: formData.payRate.replace('per ', '') as 'hour' | 'day' | 'week' | 'month' | 'year',
         salary_currency: 'IDR',
         description: formData.description,
-        requirements: formData.description ? [formData.description] : [],
+        requirements: [],
         benefits: [],
-        experience_level: 'Mid',
+        experience_level: 'Mid' as 'Mid' | 'Entry' | 'Senior' | 'Lead' | 'Executive',
         easy_apply: true,
         application_deadline: formData.hasDeadline ? formData.deadline : undefined,
         company_id: formData.companyId,
         contact_email: formData.applicationEmail
-      })
+      }
+
+      if (mode === 'edit' && existingJob) {
+        await updateJobPosting(existingJob.id, jobData)
+      } else {
+        await createJobPosting(jobData)
+      }
       
       // Clear saved draft and reset form after successful submission
       if (typeof window !== 'undefined') {
@@ -177,7 +261,7 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
       setCurrentStep(1)
       onClose()
     } catch (error) {
-      console.error('Failed to create job posting:', error)
+      console.error(`Failed to ${mode} job posting:`, error)
     } finally {
       setIsSubmitting(false)
     }
@@ -207,21 +291,36 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
   }
 
   const renderStep = () => {
-    switch (currentStep) {
-      case 1: return <CreateJobPostStep formData={formData} updateFormData={updateFormData} />
-      case 2: return <AddBasicsStep formData={formData} updateFormData={updateFormData} />
-      case 3: return <AddDetailsStep formData={formData} updateFormData={updateFormData} />
-      case 4: return <AddPayStep formData={formData} updateFormData={updateFormData} />
-      case 5: return <PreScreenStep formData={formData} updateFormData={updateFormData} />
-      case 6: return <DescribeJobStep formData={formData} updateFormData={updateFormData} />
-      case 7: return <SetPreferencesStep formData={formData} updateFormData={updateFormData} />
-      case 8: return <ReviewStep formData={formData} updateFormData={updateFormData} />
-      default: return null
+    if (mode === 'edit') {
+      // In edit mode, skip the template step (step 1)
+      switch (currentStep) {
+        case 2: return <AddBasicsStep formData={formData} updateFormData={updateFormData} />
+        case 3: return <AddDetailsStep formData={formData} updateFormData={updateFormData} />
+        case 4: return <AddPayStep formData={formData} updateFormData={updateFormData} />
+        case 5: return <PreScreenStep formData={formData} updateFormData={updateFormData} />
+        case 6: return <DescribeJobStep formData={formData} updateFormData={updateFormData} />
+        case 7: return <SetPreferencesStep formData={formData} updateFormData={updateFormData} />
+        case 8: return <ReviewStep formData={formData} updateFormData={updateFormData} />
+        default: return null
+      }
+    } else {
+      // Create mode - normal flow
+      switch (currentStep) {
+        case 1: return <CreateJobPostStep formData={formData} updateFormData={updateFormData} />
+        case 2: return <AddBasicsStep formData={formData} updateFormData={updateFormData} />
+        case 3: return <AddDetailsStep formData={formData} updateFormData={updateFormData} />
+        case 4: return <AddPayStep formData={formData} updateFormData={updateFormData} />
+        case 5: return <PreScreenStep formData={formData} updateFormData={updateFormData} />
+        case 6: return <DescribeJobStep formData={formData} updateFormData={updateFormData} />
+        case 7: return <SetPreferencesStep formData={formData} updateFormData={updateFormData} />
+        case 8: return <ReviewStep formData={formData} updateFormData={updateFormData} />
+        default: return null
+      }
     }
   }
 
   const getStepTitle = () => {
-    const titles = [
+    const createTitles = [
       'Create a job post',
       'Add job basics',
       'Add job details', 
@@ -231,6 +330,19 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
       'Set preferences',
       'Review'
     ]
+    
+    const editTitles = [
+      'Edit job post',
+      'Edit job basics',
+      'Edit job details', 
+      'Edit pay and benefits',
+      'Edit pre-screening',
+      'Edit job description',
+      'Edit preferences',
+      'Review changes'
+    ]
+    
+    const titles = mode === 'edit' ? editTitles : createTitles
     return titles[currentStep - 1]
   }
 
@@ -263,7 +375,7 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
               )}
             </div>
             <div className="flex items-center space-x-3 mt-1">
-              <p className="text-sm text-muted-foreground">Step {currentStep} of {totalSteps}</p>
+              <p className="text-sm text-muted-foreground">Step {getDisplayStep()} of {totalSteps}</p>
               {hasUnsavedData() && (
                 <Button 
                   variant="link" 
@@ -285,7 +397,7 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
           <div className="w-full bg-muted rounded-full h-2">
             <div 
               className="bg-indeed-blue h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              style={{ width: `${(getDisplayStep() / totalSteps) * 100}%` }}
             />
           </div>
         </div>
@@ -297,7 +409,7 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
 
         {/* Footer buttons */}
         <div className="flex items-center justify-between pt-6 border-t border-border">
-          {currentStep > 1 ? (
+          {currentStep > (mode === 'edit' ? 2 : 1) ? (
             <Button variant="outline" onClick={handleBack} className="flex items-center">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -306,13 +418,16 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
             <div />
           )}
 
-          {currentStep === totalSteps ? (
+          {currentStep === (mode === 'edit' ? 8 : totalSteps) ? (
             <Button 
               onClick={handleSubmit}
               disabled={!canProceed() || isSubmitting}
               className="bg-indeed-blue hover:bg-indeed-blue-dark flex items-center"
             >
-              {isSubmitting ? 'Submitting...' : 'Confirm'}
+              {isSubmitting 
+                ? (mode === 'edit' ? 'Updating...' : 'Submitting...') 
+                : (mode === 'edit' ? 'Update Job' : 'Post Job')
+              }
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (

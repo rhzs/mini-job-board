@@ -30,6 +30,7 @@ import { Filter, Plus, MoreHorizontal, Star, ChevronDown, AlertCircle } from 'lu
 import { useRouter } from 'next/navigation'
 import { JobPostingModal } from './job-posting-modal'
 import { useJobPostings } from './job-postings'
+import { useAuth } from '@/lib/auth-context'
 import { JobPosting } from '@/lib/database.types'
 
 // Loading skeleton component
@@ -77,11 +78,13 @@ function JobPostingsLoading() {
 
 export function EmployerDashboard() {
   const { jobPostings, loading, updateJobStatus, deleteJobPosting } = useJobPostings()
+  const { user } = useAuth()
   const [selectedJobs, setSelectedJobs] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [titleFilter, setTitleFilter] = useState('all')
   const [locationFilter, setLocationFilter] = useState('all')
   const [showJobModal, setShowJobModal] = useState(false)
+  const [editingJob, setEditingJob] = useState<JobPosting | null>(null)
   const router = useRouter()
 
   const handleSelectAll = (checked: boolean) => {
@@ -156,6 +159,62 @@ export function EmployerDashboard() {
         // You could add a toast notification here
       }
     }
+  }
+
+  const handleEditJob = (jobId: string) => {
+    const jobToEdit = jobPostings.find(job => job.id === jobId)
+    if (jobToEdit) {
+      setEditingJob(jobToEdit)
+      setShowJobModal(true)
+    }
+  }
+
+  const handleDuplicateJob = async (jobId: string) => {
+    const jobToDuplicate = jobPostings.find(job => job.id === jobId)
+    if (!jobToDuplicate || !user) {
+      console.error('Job not found for duplication or user not authenticated')
+      return
+    }
+
+    try {
+      // Create a copy with modified title and reset status
+      const { id, created_at, updated_at, ...jobData } = jobToDuplicate
+      
+      const duplicatedJobData = {
+        ...jobData,
+        title: `${jobToDuplicate.title} (Copy)`,
+        status: 'draft' as const,
+        posted_date: new Date().toISOString(),
+        view_count: 0,
+        is_sponsored: false,
+        employer_id: user.id
+      }
+
+      const { error } = await import('@/lib/supabase').then(({ supabase }) => 
+        supabase.from('job_postings').insert([duplicatedJobData])
+      )
+
+      if (error) {
+        console.error('Error duplicating job:', error)
+        alert('Failed to duplicate job. Please try again.')
+      } else {
+        // Refresh the page to show the new job
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error duplicating job:', error)
+      alert('Failed to duplicate job. Please try again.')
+    }
+  }
+
+  const handleViewJob = (jobId: string) => {
+    // Navigate to public job view
+    router.push(`/job/${jobId}`)
+  }
+
+  const handleViewApplications = (jobId: string) => {
+    // Navigate to applications page for this job
+    router.push(`/employer/jobs/${jobId}/applications`)
   }
 
   return (
@@ -366,10 +425,18 @@ export function EmployerDashboard() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit job</DropdownMenuItem>
-                        <DropdownMenuItem>Duplicate job</DropdownMenuItem>
-                        <DropdownMenuItem>View job</DropdownMenuItem>
-                        <DropdownMenuItem>View applications</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditJob(job.id)}>
+                          Edit job
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicateJob(job.id)}>
+                          Duplicate job
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewJob(job.id)}>
+                          View job
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewApplications(job.id)}>
+                          View applications
+                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-red-600"
                           onClick={() => handleDeleteJob(job.id)}
@@ -388,7 +455,12 @@ export function EmployerDashboard() {
       
       <JobPostingModal 
         isOpen={showJobModal}
-        onClose={() => setShowJobModal(false)}
+        onClose={() => {
+          setShowJobModal(false)
+          setEditingJob(null)
+        }}
+        existingJob={editingJob}
+        mode={editingJob ? 'edit' : 'create'}
       />
     </div>
   )
