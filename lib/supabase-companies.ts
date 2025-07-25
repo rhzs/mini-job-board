@@ -182,6 +182,69 @@ export async function fetchCompanyQuestions(
   }
 }
 
+// Fetch company questions with their answers
+export async function fetchCompanyQuestionsWithAnswers(
+  companyId: string,
+  limit: number = 20
+): Promise<(CompanyQuestion & { answers: CompanyAnswer[] })[]> {
+  try {
+    // First get the questions
+    const { data: questions, error: questionsError } = await supabase
+      .from('company_questions')
+      .select('*')
+      .eq('company_id', companyId)
+      .eq('status', 'published')
+      .order('helpful_count', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (questionsError) {
+      console.error('Error fetching company questions:', questionsError)
+      return []
+    }
+
+    if (!questions || questions.length === 0) {
+      return []
+    }
+
+    // Get answers for all questions
+    const questionIds = questions.map(q => q.id)
+    const { data: answers, error: answersError } = await supabase
+      .from('company_answers')
+      .select('*')
+      .in('question_id', questionIds)
+      .eq('status', 'published')
+      .order('helpful_count', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    if (answersError) {
+      console.error('Error fetching answers:', answersError)
+      // Return questions with empty answers arrays
+      return questions.map(question => ({ ...question, answers: [] }))
+    }
+
+    // Group answers by question_id
+    const answersByQuestion: { [key: string]: CompanyAnswer[] } = {}
+    if (answers) {
+      answers.forEach(answer => {
+        if (!answersByQuestion[answer.question_id]) {
+          answersByQuestion[answer.question_id] = []
+        }
+        answersByQuestion[answer.question_id].push(answer)
+      })
+    }
+
+    // Combine questions with their answers
+    return questions.map(question => ({
+      ...question,
+      answers: answersByQuestion[question.id] || []
+    }))
+  } catch (error) {
+    console.error('Error fetching company questions with answers:', error)
+    return []
+  }
+}
+
 // Fetch company jobs
 export async function fetchCompanyJobs(companyId: string, limit: number = 20) {
   try {
