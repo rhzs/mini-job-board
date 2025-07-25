@@ -69,12 +69,17 @@ export default function Header() {
                   )}
                 </button>
               )}
-              <a 
-                href="#" 
-                className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
+              <button 
+                onClick={() => handleNavigation('/companies')}
+                className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
+                  pathname === '/companies' ? 'text-indeed-blue' : 'text-foreground'
+                }`}
               >
                 Company reviews
-              </a>
+                {pathname === '/companies' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+                )}
+              </button>
               <a 
                 href="#" 
                 className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"

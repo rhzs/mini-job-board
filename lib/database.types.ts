@@ -67,14 +67,17 @@ export interface ApplicationFormData {
 export interface JobPosting {
   id: string
   employer_id: string // user_id of the employer
+  company_id: string // reference to companies table
   
   // Job details
   title: string
   description: string
-  company_name: string
   location: string
   job_type: string[] // ['Full-time', 'Part-time', 'Contract', 'Freelance']
   remote_allowed: boolean
+  
+  // Company information (populated via join)
+  company?: Company
   
   // Salary information
   salary_min?: number
@@ -113,10 +116,115 @@ export interface JobPosting {
   updated_at: string
 }
 
+export interface Company {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  website?: string
+  logo_url?: string
+  industry?: string
+  company_size?: '1-10' | '11-50' | '51-200' | '201-500' | '501-1000' | '1001-5000' | '5001+'
+  founded_year?: number
+  headquarters?: string
+  email?: string
+  phone?: string
+  linkedin_url?: string
+  twitter_url?: string
+  facebook_url?: string
+  is_verified: boolean
+  is_featured: boolean
+  status: 'active' | 'inactive' | 'pending'
+  total_reviews: number
+  average_rating: number
+  total_jobs: number
+  created_at: string
+  updated_at: string
+}
+
+export interface CompanyReview {
+  id: string
+  company_id: string
+  user_id: string
+  rating: number
+  title?: string
+  review_text?: string
+  job_title?: string
+  employment_type?: 'current' | 'former'
+  work_location?: string
+  employment_duration?: string
+  work_life_balance?: number
+  compensation_benefits?: number
+  job_security?: number
+  management?: number
+  culture?: number
+  pros?: string
+  cons?: string
+  advice_to_management?: string
+  is_anonymous: boolean
+  is_verified: boolean
+  is_featured: boolean
+  helpful_count: number
+  status: 'published' | 'pending' | 'rejected' | 'hidden'
+  created_at: string
+  updated_at: string
+}
+
+export interface CompanySalary {
+  id: string
+  company_id: string
+  user_id?: string
+  job_title: string
+  job_level?: 'Entry' | 'Mid' | 'Senior' | 'Lead' | 'Executive'
+  department?: string
+  base_salary: number
+  bonus: number
+  stock_options: number
+  total_compensation: number
+  salary_currency: string
+  employment_type?: 'Full-time' | 'Part-time' | 'Contract' | 'Freelance'
+  work_location?: string
+  years_of_experience?: number
+  years_at_company?: number
+  benefits_value: number
+  is_verified: boolean
+  is_anonymous: boolean
+  submission_date: string
+  created_at: string
+  updated_at: string
+}
+
+export interface CompanyQuestion {
+  id: string
+  company_id: string
+  user_id: string
+  question: string
+  question_type: 'interview' | 'work-life' | 'benefits' | 'culture' | 'general'
+  is_anonymous: boolean
+  helpful_count: number
+  answer_count: number
+  status: 'published' | 'pending' | 'rejected' | 'hidden'
+  created_at: string
+  updated_at: string
+}
+
+export interface CompanyAnswer {
+  id: string
+  question_id: string
+  user_id: string
+  answer: string
+  is_anonymous: boolean
+  helpful_count: number
+  is_verified: boolean
+  status: 'published' | 'pending' | 'rejected' | 'hidden'
+  created_at: string
+  updated_at: string
+}
+
 export interface JobPostingFormData {
   title: string
   description: string
-  company_name: string
+  company_id: string // Changed from company_name to company_id
   location: string
   job_type: string[]
   remote_allowed: boolean

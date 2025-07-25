@@ -72,7 +72,7 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
         employer_id: user.id,
         title: jobData.title,
         description: jobData.description,
-        company_name: jobData.company_name,
+        company_id: jobData.company_id,
         location: jobData.location,
         job_type: jobData.job_type,
         remote_allowed: jobData.remote_allowed,

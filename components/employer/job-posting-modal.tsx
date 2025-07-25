@@ -53,7 +53,7 @@ interface JobFormData {
   // Contact info
   contactName: string
   phoneNumber: string
-  companyName: string
+  companyId: string
 }
 
 const initialFormData: JobFormData = {
@@ -78,7 +78,7 @@ const initialFormData: JobFormData = {
   hiringCount: 0,
   contactName: '',
   phoneNumber: '',
-  companyName: 'Recruit Express'
+      companyId: 'recruit-express-sg'
 }
 
 export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
@@ -164,7 +164,7 @@ export function JobPostingModal({ isOpen, onClose }: JobPostingModalProps) {
         experience_level: 'Mid',
         easy_apply: true,
         application_deadline: formData.hasDeadline ? formData.deadline : undefined,
-        company_name: formData.companyName,
+        company_id: formData.companyId,
         contact_email: formData.applicationEmail
       })
       
@@ -820,7 +820,7 @@ function ReviewStep({ formData }: { formData: JobFormData, updateFormData: (upda
           </div>
           <div className="flex justify-between items-center py-2 border-b border-border">
             <span className="font-medium">Company for this job</span>
-            <span>{formData.companyName}</span>
+                            <span>Company</span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-border">
             <span className="font-medium">Location</span>

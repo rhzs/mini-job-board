@@ -22,7 +22,7 @@ export function convertJobPostingToJob(jobPosting: JobPosting) {
   return {
     id: jobPosting.id,
     title: jobPosting.title,
-    company: jobPosting.company_name,
+    company: jobPosting.company?.name || 'Unknown Company',
     location: jobPosting.location,
     salary: jobPosting.salary_min && jobPosting.salary_max ? {
       min: jobPosting.salary_min,
@@ -56,7 +56,7 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
     // Apply search query filter
     if (filters.query && filters.query.trim()) {
       const searchQuery = filters.query.trim()
-      query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,company_name.ilike.%${searchQuery}%`)
+      query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
     }
 
     // Apply location filter
@@ -82,9 +82,10 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
       query = query.overlaps('job_type', filters.jobType)
     }
 
-    // Apply company filter
+    // Apply company filter - this would need to join with companies table
+    // For now, skip company filter until we implement proper joins
     if (filters.company && filters.company.trim()) {
-      query = query.ilike('company_name', `%${filters.company}%`)
+      // TODO: Implement company filtering with joins
     }
 
     // Apply date posted filter
