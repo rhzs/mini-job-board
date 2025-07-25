@@ -158,10 +158,10 @@ export function JobDetail({ job }: JobDetailProps) {
             
             <div className="flex gap-2 flex-wrap mb-4">
               <Button variant="outline" size="sm" className="rounded-full text-xs">
-                Teaching ▼
+                Teaching
               </Button>
               <Button variant="outline" size="sm" className="rounded-full text-xs">
-                Preschool experience ▼
+                Preschool experience
               </Button>
             </div>
             
@@ -204,7 +204,7 @@ export function JobDetail({ job }: JobDetailProps) {
                     className={`rounded-full text-xs ${type === 'Part-time' || type === 'Freelance' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700' : ''}`}
                   >
                     {(type === 'Part-time' || type === 'Freelance') && <CheckCircle className="h-3 w-3 mr-1" />}
-                    {type} ▼
+                    {type}
                   </Button>
                 ))}
               </div>
@@ -218,13 +218,13 @@ export function JobDetail({ job }: JobDetailProps) {
               <div className="flex gap-2 flex-wrap">
                 <Button variant="outline" size="sm" className="rounded-full text-xs bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  Day shift ▼
+                  Day shift
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Monday to Friday ▼
+                  Monday to Friday
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Shift system ▼
+                  Shift system
                 </Button>
               </div>
             </div>

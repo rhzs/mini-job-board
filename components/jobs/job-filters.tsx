@@ -4,7 +4,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { JobFilters as JobFiltersType } from './job-search-page'
 import { salaryRanges } from '@/lib/mock-data'
-import { ChevronDown } from 'lucide-react'
+
 
 interface JobFiltersProps {
   filters: JobFiltersType
@@ -39,7 +39,7 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
               const [min, max] = e.target.value.split('-').map(Number)
               updateFilter('salary', { min, max })
             }}
-            className="text-sm border border-input rounded px-3 py-1.5 bg-background pr-8 min-w-20"
+            className="text-sm border border-input rounded px-3 py-1.5 bg-background min-w-20"
           >
             <option value="">Pay</option>
             {salaryRanges.map((range, index) => (
@@ -48,7 +48,6 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
         </div>
 
         {/* Remote Filter */}
@@ -73,7 +72,7 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
               }
               updateFilter('jobType', [e.target.value])
             }}
-            className="text-sm border border-input rounded px-3 py-1.5 bg-background pr-8 min-w-24"
+            className="text-sm border border-input rounded px-3 py-1.5 bg-background min-w-24"
           >
             <option value="">Job type</option>
             <option value="Full-time">Full-time</option>
@@ -81,7 +80,6 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
             <option value="Contract">Contract</option>
             <option value="Freelance">Freelance</option>
           </select>
-          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
         </div>
 
         {/* Date Posted Filter */}
@@ -89,7 +87,7 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
           <select
             value={filters.datePosted || ''}
             onChange={(e) => updateFilter('datePosted', e.target.value || undefined)}
-            className="text-sm border border-input rounded px-3 py-1.5 bg-background pr-8 min-w-28"
+            className="text-sm border border-input rounded px-3 py-1.5 bg-background min-w-28"
           >
             <option value="">Date posted</option>
             <option value="today">Today</option>
@@ -97,7 +95,6 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
             <option value="week">Last week</option>
             <option value="month">Last month</option>
           </select>
-          <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
         </div>
 
         {hasActiveFilters && (

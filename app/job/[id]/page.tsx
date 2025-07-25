@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
-import { mockJobs, Job } from '@/lib/mock-data'
+import { Job } from '@/lib/mock-data'
+import { fetchJobById, convertJobPostingToJob, incrementJobViewCount } from '@/lib/supabase-jobs'
 import { JobDetail } from '@/components/jobs/job-detail'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -54,17 +55,36 @@ function JobDetailSkeleton() {
 export default function JobPage({ params }: JobPageProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [job, setJob] = useState<Job | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Simulate brief loading to prevent glitch
-    const timer = setTimeout(() => {
-      const foundJob = mockJobs.find(j => j.id === params.id) || null
-      setJob(foundJob)
-      setIsLoading(false)
-    }, 200) // Brief delay to prevent glitch
-
-    return () => clearTimeout(timer)
+    fetchJob()
   }, [params.id])
+
+  const fetchJob = async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const jobPosting = await fetchJobById(params.id)
+      
+      if (jobPosting) {
+        // Convert JobPosting to Job format for compatibility
+        const convertedJob = convertJobPostingToJob(jobPosting)
+        setJob(convertedJob)
+        
+        // Increment view count
+        await incrementJobViewCount(params.id)
+      } else {
+        setError('Job not found')
+      }
+    } catch (error) {
+      console.error('Error fetching job:', error)
+      setError('Failed to load job')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Show loading state first
   if (isLoading) {
@@ -80,7 +100,7 @@ export default function JobPage({ params }: JobPageProps) {
   }
 
   // Then check if job exists after loading is complete
-  if (!job) {
+  if (error || !job) {
     notFound()
   }
 

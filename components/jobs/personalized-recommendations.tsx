@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { UserPreferences } from '@/lib/database.types'
-import { mockJobs } from '@/lib/mock-data'
+import { fetchRecommendedJobs, convertJobPostingToJob } from '@/lib/supabase-jobs'
 import { getJobRecommendations, JobMatchScore } from '@/lib/job-matching'
 import { JobCard } from './job-card'
 import { JobMatchBadge } from './job-match-badge'
@@ -45,8 +45,18 @@ export function PersonalizedRecommendations() {
 
       if (data) {
         setPreferences(data)
-        const jobRecommendations = getJobRecommendations(mockJobs, data, 6)
-        setRecommendations(jobRecommendations)
+        
+        // Fetch recommended jobs from Supabase
+        const recommendedJobs = await fetchRecommendedJobs(user.id, 6)
+        
+        if (recommendedJobs.length > 0) {
+          // Convert to Job format and get match scores
+          const convertedJobs = recommendedJobs.map(convertJobPostingToJob)
+          const jobRecommendations = getJobRecommendations(convertedJobs, data, 6)
+          setRecommendations(jobRecommendations)
+        } else {
+          setRecommendations([])
+        }
       }
     } catch (error) {
       console.error('Error fetching preferences:', error)

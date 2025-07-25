@@ -9,7 +9,9 @@ import { JobDetail } from './job-detail'
 import { JobFilters } from './job-filters'
 import { NoResults } from './no-results'
 import { JobMatchBadge } from './job-match-badge'
-import { mockJobs, type Job } from '@/lib/mock-data'
+import { type Job } from '@/lib/mock-data'
+import { JobPosting } from '@/lib/database.types'
+import { fetchJobs, convertJobPostingToJob, type JobFilters as SupabaseJobFilters } from '@/lib/supabase-jobs'
 import { Search, MapPin, SlidersHorizontal } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { UserPreferences } from '@/lib/database.types'
@@ -37,11 +39,13 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
   
   const [query, setQuery] = useState(initialQuery)
   const [location, setLocation] = useState(initialLocation)
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(mockJobs[0]?.id || null)
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   const [filters, setFilters] = useState<JobFilters>({})
   const [sortBy, setSortBy] = useState<'relevance' | 'date'>('relevance')
   const [showFilters, setShowFilters] = useState(false)
   const [preferences, setPreferences] = useState<UserPreferences | null>(null)
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Parse filters from URL on mount
   useEffect(() => {
@@ -113,57 +117,73 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
     router.replace(newUrl, { scroll: false })
   }
 
-  const filteredJobs = useMemo(() => {
-    let jobs = [...mockJobs]
+  // Fetch jobs from Supabase
+  useEffect(() => {
+    fetchJobsFromSupabase()
+  }, [query, location, filters])
 
-    // Filter by search query
-    if (query.trim()) {
-      jobs = jobs.filter(job => 
-        job.title.toLowerCase().includes(query.toLowerCase()) ||
-        job.company.toLowerCase().includes(query.toLowerCase()) ||
-        job.description.toLowerCase().includes(query.toLowerCase())
-      )
+  const fetchJobsFromSupabase = async () => {
+    setLoading(true)
+    try {
+      const supabaseFilters: SupabaseJobFilters = {
+        query: query.trim() || undefined,
+        location: location.trim() || undefined,
+        remote: filters.remote,
+        jobType: filters.jobType,
+        salary: filters.salary,
+        company: filters.company,
+        datePosted: filters.datePosted
+      }
+
+      const result = await fetchJobs(supabaseFilters)
+      
+      if (result.error) {
+        console.error('Error fetching jobs:', result.error)
+        setJobs([])
+      } else {
+        // Convert JobPosting to Job format for compatibility
+        const convertedJobs = result.jobs.map(convertJobPostingToJob)
+        
+        // Sort jobs with personalization
+        if (sortBy === 'relevance' && preferences) {
+          const rankedJobs = rankJobsByMatch(convertedJobs, preferences)
+          setJobs(rankedJobs.map(match => match.job))
+        } else if (sortBy === 'date') {
+          const sortedJobs = [...convertedJobs].sort((a, b) => 
+            new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
+          )
+          setJobs(sortedJobs)
+        } else {
+          setJobs(convertedJobs)
+        }
+
+        // Set first job as selected if none selected
+        if (!selectedJobId && convertedJobs.length > 0) {
+          setSelectedJobId(convertedJobs[0].id)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error)
+      setJobs([])
+    } finally {
+      setLoading(false)
     }
+  }
 
-    // Filter by location
-    if (location.trim() && location.toLowerCase() !== 'singapore') {
-      jobs = jobs.filter(job => 
-        job.location.toLowerCase().includes(location.toLowerCase())
-      )
+  // Re-sort when sortBy or preferences change (without refetching)
+  useEffect(() => {
+    if (jobs.length > 0) {
+      if (sortBy === 'relevance' && preferences) {
+        const rankedJobs = rankJobsByMatch(jobs, preferences)
+        setJobs(rankedJobs.map(match => match.job))
+      } else if (sortBy === 'date') {
+        const sortedJobs = [...jobs].sort((a, b) => 
+          new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
+        )
+        setJobs(sortedJobs)
+      }
     }
-
-    // Apply filters
-    if (filters.remote !== undefined) {
-      jobs = jobs.filter(job => job.remote === filters.remote)
-    }
-
-    if (filters.salary) {
-      jobs = jobs.filter(job => {
-        if (!job.salary) return false
-        const monthlySalary = job.salary.period === 'month' ? job.salary.min : 
-                             job.salary.period === 'year' ? job.salary.min / 12 :
-                             job.salary.period === 'hour' ? job.salary.min * 8 * 22 :
-                             job.salary.min
-        return monthlySalary >= filters.salary!.min && monthlySalary <= filters.salary!.max
-      })
-    }
-
-    if (filters.jobType && filters.jobType.length > 0) {
-      jobs = jobs.filter(job => 
-        job.jobType.some(type => filters.jobType!.includes(type))
-      )
-    }
-
-    // Sort jobs with personalization
-    if (sortBy === 'relevance' && preferences) {
-      const rankedJobs = rankJobsByMatch(jobs, preferences)
-      return rankedJobs.map(match => match.job)
-    } else if (sortBy === 'date') {
-      jobs.sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime())
-    }
-
-    return jobs
-  }, [query, location, filters, sortBy, preferences])
+  }, [sortBy, preferences])
 
   const handleSearch = () => {
     updateURL(query, location, filters, sortBy)
@@ -213,10 +233,10 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
 
   const getJobMatchScores = useMemo(() => {
     if (!preferences) return null
-    return rankJobsByMatch(filteredJobs, preferences)
-  }, [filteredJobs, preferences])
+    return rankJobsByMatch(jobs, preferences)
+  }, [jobs, preferences])
 
-  const selectedJob = selectedJobId ? filteredJobs.find(job => job.id === selectedJobId) : null
+  const selectedJob = selectedJobId ? jobs.find(job => job.id === selectedJobId) : null
 
   return (
     <div className="min-h-screen bg-background">
@@ -288,7 +308,7 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-sm text-muted-foreground">
-                  {filteredJobs.length}+ jobs
+                  {jobs.length}+ jobs
                 </span>
                 <select
                   value={sortBy}
@@ -302,9 +322,15 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
             </div>
 
             {/* Job Cards */}
-            {filteredJobs.length > 0 ? (
+            {loading ? (
               <div className="space-y-3">
-                {filteredJobs.map((job, index) => {
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-32" />
+                ))}
+              </div>
+            ) : jobs.length > 0 ? (
+              <div className="space-y-3">
+                {jobs.map((job, index) => {
                   const matchScore = getJobMatchScores?.find(match => match.job.id === job.id)
                   return (
                     <div key={job.id} className="relative">

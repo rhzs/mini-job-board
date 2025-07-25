@@ -15,10 +15,10 @@ export function ThemeProvider({
 }) {
   return (
     <NextThemesProvider
-      attribute="class"
+      attribute={["class"] as any}
       defaultTheme="system"
-      enableSystem={true}
-      disableTransitionOnChange={true}
+      enableSystem
+      disableTransitionOnChange
       {...props}
     >
       {children}
