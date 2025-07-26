@@ -6,3 +6,8 @@ node_modules/
 *.log
 *.txt
 
+# Playwright
+playwright-report/
+test-results/
+/tests-examples/
+

@@ -42,14 +42,19 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       />
       
       {/* Modal Content */}
-      <div className={cn(
-        "relative bg-background border border-border rounded-lg shadow-lg max-w-md w-full mx-4 max-h-[90vh] overflow-auto",
-        className
-      )}>
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? "modal-title" : undefined}
+        className={cn(
+          "relative bg-background border border-border rounded-lg shadow-lg max-w-md w-full mx-4 max-h-[90vh] overflow-auto",
+          className
+        )}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           {title && (
-            <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+            <h2 id="modal-title" className="text-lg font-semibold text-foreground">{title}</h2>
           )}
           <Button
             variant="ghost"
