@@ -67,16 +67,17 @@ export interface ApplicationFormData {
 export interface JobPosting {
   id: string
   employer_id: string // user_id of the employer
-  company_id: string // reference to companies table
+  company_id?: string // reference to companies table (optional for backward compatibility)
   
   // Job details
   title: string
   description: string
+  company_name: string // fallback field for company name
   location: string
   job_type: string[] // ['Full-time', 'Part-time', 'Contract', 'Freelance']
   remote_allowed: boolean
   
-  // Company information (populated via join)
+  // Company information (populated via join when available)
   company?: Company
   
   // Salary information

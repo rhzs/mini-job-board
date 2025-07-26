@@ -1,20 +1,16 @@
 import { supabase } from './supabase'
 import { JobPosting } from './database.types'
 
+// Job filters interface
 export interface JobFilters {
   query?: string
   location?: string
-  salary?: { min: number; max: number }
-  remote?: boolean
+  salary?: { min: number, max: number }
   jobType?: string[]
+  remote?: boolean
   company?: string
-  datePosted?: string
-}
-
-export interface JobSearchResult {
-  jobs: JobPosting[]
-  total: number
-  error?: string
+  datePosted?: 'today' | 'week' | 'month'
+  sortBy?: 'relevance' | 'date'
 }
 
 // Convert JobPosting to Job interface for compatibility with existing components
@@ -22,7 +18,7 @@ export function convertJobPostingToJob(jobPosting: JobPosting) {
   return {
     id: jobPosting.id,
     title: jobPosting.title,
-    company: jobPosting.company?.name || 'Unknown Company',
+    company: jobPosting.company_name || 'Unknown Company', // Use company_name directly since no join
     location: jobPosting.location,
     salary: jobPosting.salary_min && jobPosting.salary_max ? {
       min: jobPosting.salary_min,
@@ -44,12 +40,19 @@ export function convertJobPostingToJob(jobPosting: JobPosting) {
   }
 }
 
+// Job search result interface
+export interface JobSearchResult {
+  jobs: JobPosting[]
+  total: number
+  error?: string
+}
+
 // Fetch all active jobs with optional filters
 export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResult> {
   try {
     let query = supabase
       .from('job_postings')
-      .select('*')
+      .select('*')  // Simplified: remove the company join that's causing issues
       .eq('status', 'active')
       .order('posted_date', { ascending: false })
 
@@ -82,10 +85,9 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
       query = query.overlaps('job_type', filters.jobType)
     }
 
-    // Apply company filter - this would need to join with companies table
-    // For now, skip company filter until we implement proper joins
+    // Apply company filter using company name
     if (filters.company && filters.company.trim()) {
-      // TODO: Implement company filtering with joins
+      query = query.ilike('company_name', `%${filters.company}%`)
     }
 
     // Apply date posted filter
