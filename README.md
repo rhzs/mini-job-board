@@ -4,7 +4,7 @@ A comprehensive job board platform inspired by Indeed, built with modern web tec
 
 ## Demo
 
-[Vercel Demo](https://mini-job-board-ye71-ql1ygscyk-rheza-satrias-projects.vercel.app)
+[Vercel Demo https://mini-job-board-ye71.vercel.app](https://mini-job-board-ye71.vercel.app)
 
 Demo User:
 
