@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { User, ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import CompanySelector from "@/components/tenant/company-selector"
 import { useIsCompanyMode, usePersonalMode } from "@/lib/tenant-context"
 
 export default function Header() {
-  const { user, openSignIn, signOut } = useAuth()
+  const { user, openSignIn } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -134,24 +134,8 @@ export default function Header() {
               />
             )}
             
-            {/* Auth Section */}
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-sm">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground font-medium">
-                    {user.email}
-                  </span>
-                </div>
-                <Button 
-                  variant="link" 
-                  className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
-                  onClick={signOut}
-                >
-                  Sign out
-                </Button>
-              </div>
-            ) : (
+            {/* Auth Section - Only show sign in for non-authenticated users */}
+            {!user && (
               <Button 
                 variant="link" 
                 className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
@@ -159,20 +143,6 @@ export default function Header() {
               >
                 Sign in
               </Button>
-            )}
-            
-            {/* Separator and Employers button - only show in personal mode */}
-            {!isCompanyMode && (
-              <div className="flex items-center space-x-4">
-                <span className="text-muted-foreground/50">|</span>
-                <Button 
-                  variant="link" 
-                  className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
-                  onClick={() => handleNavigation('/employer')}
-                >
-                  Employers / Post Job
-                </Button>
-              </div>
             )}
           </div>
         </div>

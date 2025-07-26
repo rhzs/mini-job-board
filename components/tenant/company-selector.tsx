@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { ChevronDown, Building2, Plus, Users, Settings, User } from 'lucide-react'
+import { ChevronDown, Building2, Plus, Users, Settings, User, LogOut, Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { 
@@ -26,7 +26,7 @@ export default function CompanySelector({
   onJoinCompany, 
   onManageCompany 
 }: CompanySelectorProps) {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const { currentCompany, userCompanies, switchCompany, switchToPersonal, isLoading } = useTenant()
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
@@ -106,6 +106,26 @@ export default function CompanySelector({
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="start" className="w-80">
+        {/* User Info Section */}
+        {user && (
+          <>
+            <div className="px-3 py-3 bg-accent/30 rounded-md mx-2 mt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+                  {user.email?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm truncate flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    {user.email}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+          </>
+        )}
+
         {/* Current Mode Section */}
         <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
           Current Mode
@@ -132,11 +152,11 @@ export default function CompanySelector({
                   <Badge className={`text-xs ${getRoleColor(currentCompany.role)}`}>
                     {currentCompany.role}
                   </Badge>
-                  {currentCompany.location && (
-                    <span className="text-xs text-muted-foreground truncate">
-                      {currentCompany.location}
-                    </span>
-                  )}
+                                      {currentCompany.location && (
+                      <span className="text-xs text-muted-foreground truncate">
+                        {currentCompany.location}
+                      </span>
+                    )}
                 </div>
               </div>
             </div>
@@ -247,9 +267,9 @@ export default function CompanySelector({
               <Plus className="w-4 h-4 text-muted-foreground" />
             </div>
             <div>
-              <div className="font-medium text-sm">Create New Company</div>
+              <div className="font-medium text-sm">Add New Company</div>
               <div className="text-xs text-muted-foreground">
-                Start your own organization
+                Create your own organization
               </div>
             </div>
           </div>
@@ -267,9 +287,9 @@ export default function CompanySelector({
               <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <div className="font-medium text-sm">Join Existing Company</div>
+              <div className="font-medium text-sm">Link Company</div>
               <div className="text-xs text-muted-foreground">
-                Request to join an organization
+                Connect with an existing organization
               </div>
             </div>
           </div>
@@ -310,6 +330,32 @@ export default function CompanySelector({
               Create or join a company to get started
             </div>
           </div>
+        )}
+
+        {/* Sign Out Section */}
+        {user && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="cursor-pointer p-3 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+              onClick={() => {
+                setIsOpen(false)
+                signOut()
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                  <LogOut className="w-4 h-4 text-red-600" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm">Sign Out</div>
+                  <div className="text-xs text-muted-foreground">
+                    End your session
+                  </div>
+                </div>
+              </div>
+            </DropdownMenuItem>
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

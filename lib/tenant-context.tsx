@@ -139,9 +139,9 @@ export function TenantProvider({ children }: TenantProviderProps) {
           name: data.name,
           description: data.description,
           website: data.website,
-          location: data.location,
+          headquarters: data.location, // Map location to headquarters column
           industry: data.industry,
-          size: data.size,
+          company_size: data.size, // Map size to company_size column
           founded_year: data.founded_year,
           email_domain: data.email_domain,
           auto_approve_domain: data.auto_approve_domain || false,
@@ -172,6 +172,9 @@ export function TenantProvider({ children }: TenantProviderProps) {
 
       // Reload user companies to include the new one
       await loadUserCompanies()
+
+      // Automatically switch to the newly created company
+      await switchCompany(company.id)
 
       return company
     } catch (error) {
