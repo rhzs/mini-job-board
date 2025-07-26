@@ -2,6 +2,15 @@
 
 A comprehensive job board platform inspired by Indeed, built with modern web technologies. Features complete job search, company management, employer tools, and user authentication.
 
+## Demo
+
+[Vercel Demo](https://mini-job-board-ye71-ql1ygscyk-rheza-satrias-projects.vercel.app)
+
+Demo User:
+
+`john.doe12313@gmail.com` / `P@ssw0rd123`
+
+
 ## 🚀 Tech Stack
 
 ### Frontend

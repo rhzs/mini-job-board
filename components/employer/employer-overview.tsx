@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
@@ -21,10 +21,12 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useJobPostings } from './job-postings'
+import { JobPostingModal } from './job-posting-modal'
 
 export function EmployerOverview() {
   const router = useRouter()
   const { jobPostings, loading } = useJobPostings()
+  const [showJobModal, setShowJobModal] = useState(false)
 
   const recentJob = jobPostings[0] // Most recent job for activity section
 
@@ -65,7 +67,10 @@ export function EmployerOverview() {
           <Card className="w-full max-w-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-indeed-blue cursor-pointer hover:underline">
+                <h3 
+                  className="font-medium text-indeed-blue cursor-pointer hover:underline"
+                  onClick={() => handleNavigation(`/job/${recentJob.id}`)}
+                >
                   {recentJob.title}
                 </h3>
                 <Button variant="ghost" size="sm">
@@ -117,7 +122,7 @@ export function EmployerOverview() {
               <Button 
                 variant="link" 
                 className="h-auto p-0 text-indeed-blue text-sm justify-start"
-                onClick={() => handleNavigation('/employer/post-job')}
+                onClick={() => setShowJobModal(true)}
               >
                 Post a job <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
@@ -275,6 +280,12 @@ export function EmployerOverview() {
           </CardContent>
         </Card>
       </div>
+      
+      <JobPostingModal 
+        isOpen={showJobModal}
+        onClose={() => setShowJobModal(false)}
+        mode="create"
+      />
     </div>
   )
 } 

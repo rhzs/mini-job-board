@@ -362,7 +362,10 @@ export function EmployerDashboard() {
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
                         <Star className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-indeed-blue cursor-pointer hover:underline">
+                        <span 
+                          className="font-medium text-indeed-blue cursor-pointer hover:underline"
+                          onClick={() => router.push(`/job/${job.id}`)}
+                        >
                           {job.title}
                         </span>
                       </div>
