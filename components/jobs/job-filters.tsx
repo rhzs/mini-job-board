@@ -55,7 +55,7 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
           variant={filters.remote ? "default" : "outline"}
           size="sm"
           onClick={() => updateFilter('remote', filters.remote ? undefined : true)}
-          className="whitespace-nowrap"
+          className={`whitespace-nowrap ${filters.remote ? 'bg-indeed-blue hover:bg-indeed-blue-dark text-white' : ''}`}
         >
           Remote
         </Button>
@@ -98,7 +98,7 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
         </div>
 
         {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
+          <Button variant="ghost" size="sm" onClick={clearFilters} data-testid="clear-filters-compact">
             Clear all
           </Button>
         )}
@@ -215,7 +215,7 @@ export function JobFilters({ filters, onFiltersChange, compact = false }: JobFil
 
       {hasActiveFilters && (
         <div className="pt-4 border-t border-border">
-          <Button variant="outline" onClick={clearFilters} className="w-full">
+          <Button variant="outline" onClick={clearFilters} className="w-full" data-testid="clear-filters-expanded">
             Clear all filters
           </Button>
         </div>

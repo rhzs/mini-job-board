@@ -9,7 +9,7 @@ export interface JobFilters {
   jobType?: string[]
   remote?: boolean
   company?: string
-  datePosted?: 'today' | 'week' | 'month'
+  datePosted?: 'today' | '3days' | 'week' | 'month'
   sortBy?: 'relevance' | 'date'
 }
 
@@ -50,6 +50,8 @@ export interface JobSearchResult {
 // Fetch all active jobs with optional filters
 export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResult> {
   try {
+    console.log('🔍 fetchJobs called with filters:', filters)
+    
     let query = supabase
       .from('job_postings')
       .select('*')  // Simplified: remove the company join that's causing issues
@@ -59,21 +61,25 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
     // Apply search query filter
     if (filters.query && filters.query.trim()) {
       const searchQuery = filters.query.trim()
+      console.log('📝 Applying search filter:', searchQuery)
       query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
     }
 
     // Apply location filter
     if (filters.location && filters.location.trim() && filters.location.toLowerCase() !== 'singapore') {
+      console.log('📍 Applying location filter:', filters.location)
       query = query.ilike('location', `%${filters.location}%`)
     }
 
     // Apply remote filter
     if (filters.remote !== undefined) {
+      console.log('🏠 Applying remote filter:', filters.remote)
       query = query.eq('remote_allowed', filters.remote)
     }
 
     // Apply salary filter (convert to monthly for comparison)
     if (filters.salary) {
+      console.log('💰 Applying salary filter:', filters.salary)
       // For now, assume all salaries in database are monthly
       query = query
         .gte('salary_min', filters.salary.min)
@@ -82,22 +88,28 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
 
     // Apply job type filter
     if (filters.jobType && filters.jobType.length > 0) {
+      console.log('💼 Applying job type filter:', filters.jobType)
       query = query.overlaps('job_type', filters.jobType)
     }
 
     // Apply company filter using company name
     if (filters.company && filters.company.trim()) {
+      console.log('🏢 Applying company filter:', filters.company)
       query = query.ilike('company_name', `%${filters.company}%`)
     }
 
     // Apply date posted filter
     if (filters.datePosted) {
+      console.log('📅 Applying date filter:', filters.datePosted)
       const now = new Date()
       let dateThreshold: Date
       
       switch (filters.datePosted) {
         case 'today':
           dateThreshold = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+          break
+        case '3days':  // Added support for 3 days
+          dateThreshold = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
           break
         case 'week':
           dateThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -110,6 +122,7 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
       }
       
       if (dateThreshold.getTime() > 0) {
+        console.log('📅 Date threshold:', dateThreshold.toISOString())
         query = query.gte('posted_date', dateThreshold.toISOString())
       }
     }
@@ -117,16 +130,17 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
     const { data, error, count } = await query.limit(100) // Limit to 100 results
 
     if (error) {
-      console.error('Error fetching jobs:', error)
+      console.error('❌ Error fetching jobs:', error)
       return { jobs: [], total: 0, error: error.message }
     }
 
+    console.log('✅ Successfully fetched', data?.length || 0, 'jobs')
     return {
       jobs: data || [],
       total: count || (data?.length || 0)
     }
   } catch (error) {
-    console.error('Error fetching jobs:', error)
+    console.error('❌ Error fetching jobs:', error)
     return { jobs: [], total: 0, error: 'Failed to fetch jobs' }
   }
 }

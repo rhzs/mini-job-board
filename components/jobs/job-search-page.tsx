@@ -29,7 +29,7 @@ export interface JobFilters {
   jobType?: string[]
   company?: string
   location?: string
-  datePosted?: string
+  datePosted?: 'today' | '3days' | 'week' | 'month'  // Added '3days' option
 }
 
 export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore' }: JobSearchPageProps) {
@@ -73,7 +73,7 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
     // Parse date posted filter
     const datePosted = searchParams.get('datePosted')
     if (datePosted) {
-      urlFilters.datePosted = datePosted
+      urlFilters.datePosted = datePosted as 'today' | '3days' | 'week' | 'month'
     }
     
     // Parse sort by
@@ -191,6 +191,7 @@ export function JobSearchPage({ initialQuery = '', initialLocation = 'Singapore'
 
   // Update URL when filters change
   const handleFiltersChange = (newFilters: JobFilters) => {
+    console.log('🔄 Filters changed:', { old: filters, new: newFilters })
     setFilters(newFilters)
     updateURL(query, location, newFilters, sortBy)
   }
