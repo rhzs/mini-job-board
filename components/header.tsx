@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { User } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import CompanySelector from "@/components/tenant/company-selector"
 
 export default function Header() {
   const { user, openSignIn, signOut } = useAuth()
@@ -13,6 +14,8 @@ export default function Header() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showJoinModal, setShowJoinModal] = useState(false)
 
   // Handle hydration
   useEffect(() => {
@@ -93,6 +96,14 @@ export default function Header() {
           <div className="flex items-center space-x-6">
             <ThemeToggle />
             
+            {/* Company Selector - only show for logged in users */}
+            {user && (
+              <CompanySelector
+                onCreateCompany={() => setShowCreateModal(true)}
+                onJoinCompany={() => setShowJoinModal(true)}
+              />
+            )}
+            
             {/* Auth Section */}
             {user ? (
               <div className="flex items-center space-x-4">
@@ -134,6 +145,8 @@ export default function Header() {
           </div>
         </div>
       </div>
+      
+      {/* TODO: Add modals for company creation and joining */}
     </header>
   )
 } 

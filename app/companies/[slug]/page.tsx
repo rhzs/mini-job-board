@@ -137,7 +137,7 @@ export default function CompanyPage({ params }: CompanyPageProps) {
   const tabs = [
     { id: 'snapshot', label: 'Snapshot' },
     { id: 'why-join', label: 'Why Join Us' },
-    { id: 'reviews', label: `${company?.total_reviews.toLocaleString() || 0} Reviews` },
+    { id: 'reviews', label: `${company?.total_reviews?.toLocaleString() || 0} Reviews` },
     { id: 'salaries', label: '2.7K Salaries' },
     { id: 'jobs', label: `${company?.total_jobs || 0} Jobs` },
     { id: 'questions', label: `${questions.length} Questions` },
@@ -198,25 +198,25 @@ export default function CompanyPage({ params }: CompanyPageProps) {
                 
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex items-center gap-1">
-                    {renderStars(company.average_rating)}
+                    {renderStars(company.average_rating || 0)}
                   </div>
                   <span className="text-lg font-bold text-foreground">
-                    {company.average_rating.toFixed(1)}
+                    {(company.average_rating || 0).toFixed(1)}
                   </span>
                   <Star className="h-4 w-4 text-purple-600 fill-purple-600" />
                 </div>
 
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                  {company.headquarters && (
+                  {company.location && (
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span>{company.headquarters}</span>
+                      <span>{company.location}</span>
                     </div>
                   )}
-                  {company.company_size && (
+                  {company.size && (
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      <span>{company.company_size} employees</span>
+                      <span>{company.size} employees</span>
                     </div>
                   )}
                   {company.industry && (

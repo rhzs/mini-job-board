@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/lib/auth-context'
+import { TenantProvider } from '@/lib/tenant-context'
 import { SavedJobsProvider } from '@/components/jobs/saved-jobs'
 import { JobApplicationsProvider } from '@/components/jobs/job-applications'
 import { JobPostingsProvider } from '@/components/employer/job-postings'
@@ -30,13 +31,15 @@ export default function RootLayout({
           disableTransitionOnChange
         >
                   <AuthProvider>
-          <SavedJobsProvider>
-            <JobApplicationsProvider>
-              <JobPostingsProvider>
-                {children}
-              </JobPostingsProvider>
-            </JobApplicationsProvider>
-          </SavedJobsProvider>
+          <TenantProvider>
+            <SavedJobsProvider>
+              <JobApplicationsProvider>
+                <JobPostingsProvider>
+                  {children}
+                </JobPostingsProvider>
+              </JobApplicationsProvider>
+            </SavedJobsProvider>
+          </TenantProvider>
         </AuthProvider>
         </ThemeProvider>
       </body>
