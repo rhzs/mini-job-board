@@ -4,38 +4,19 @@ This directory contains end-to-end tests for the job board application using Pla
 
 ## Test Files
 
-### `auth.spec.ts`
-Comprehensive tests for authentication functionality including:
-- Sign in modal interactions
-- Sign up modal interactions  
-- Form validation
-- Password visibility toggle
-- Modal navigation between sign in/sign up
-- Error handling
-- Terms and privacy links
+| Test File | Description | Test Count | Status |
+|-----------|-------------|------------|---------|
+| `auth.spec.ts` | Authentication modal interactions, form validation, password visibility, modal navigation, error handling | 18 tests | ✅ Passing |
+| `auth-with-helpers.spec.ts` | Authentication flows using helper functions for cleaner test code | 8 tests | ✅ Passing |
+| `auth-success-flow.spec.ts` | Successful authentication flows requiring live auth setup | 8 tests | ⏭️ Skipped |
+| `job-management.spec.ts` | Job management UI components, modals, dropdowns, navigation | 10 tests | ✅ Passing |
+| `home-page-filters.spec.ts` | Home page search and filters functionality, responsive design, accessibility | 10 tests | ✅ Passing |
 
-### `auth-success-flow.spec.ts`
-Tests for successful authentication flows (currently skipped):
-- Successful sign in with valid credentials
-- Successful sign up with new account
-- Sign out functionality
-- Authentication persistence
-- Error handling for invalid credentials
+## Helper Files
 
-### `auth-with-helpers.spec.ts`
-Demonstrates using helper functions for cleaner tests:
-- Complete authentication flows
-- Form validation
-- Modal navigation
-- UI state verification
-- Accessibility testing
-- Edge cases
-
-### `helpers/auth-helpers.ts`
-Helper functions and utilities:
-- `AuthHelpers` class for common authentication actions
-- `TestDataGenerator` for creating test data
-- `AuthAssertions` for common assertions
+| File | Purpose |
+|------|---------|
+| `helpers/auth-helpers.ts` | AuthHelpers class, TestDataGenerator, AuthAssertions utilities |
 
 ## Running Tests
 
@@ -43,98 +24,59 @@ Helper functions and utilities:
 # Run all tests
 npm run test:e2e
 
-# Run tests in headed mode (see browser)
+# Run tests in headed mode
 npm run test:e2e:headed
 
-# Run specific test file
-npx playwright test tests/auth.spec.ts
+# Run with debug mode
+npm run test:e2e:debug
 
-# Run tests in debug mode
-npx playwright test --debug
+# Run specific test file
+npm run test:e2e -- tests/auth.spec.ts
+
+# Run only Chromium tests
+npm run test:e2e -- --project=chromium
 
 # Generate test report
-npx playwright show-report
+npm run test:e2e:report
 ```
 
-## Test Setup
+## Test Coverage
 
-The tests are configured to:
-- Start the development server automatically (`npm run dev`)
-- Run against `http://localhost:3000`
-- Use Chrome and Firefox browsers
-- Take screenshots on failure
-- Record videos on failure
-- Generate HTML reports
+### Authentication Tests (26 passing)
+- Sign in/sign up modal functionality
+- Form validation (email, password, domain checks)
+- Modal accessibility and keyboard navigation
+- Error message handling
+- Password visibility toggle
+- Modal switching between sign in/sign up
+
+### Job Management Tests (10 passing)
+- Header navigation elements
+- Employer button functionality
+- Job posting modal accessibility
+- Form field validation
+- Dropdown menu structure (Edit, Duplicate, View, View Applications, Delete)
+- Basic page navigation
+
+### Home Page Filters Tests (10 passing)
+- Search interface display and functionality
+- Location search with different cities
+- Filter visibility and interaction (Remote, Pay, Job type, Date posted)
+- Sort functionality (relevance vs date)
+- Responsive design across different viewport sizes
+- Job results display and interaction
+- Accessibility features (keyboard navigation, focus management)
+
+## Test Configuration
+
+- **Base URL**: `http://localhost:3000`
+- **Browsers**: Chromium, Firefox
+- **Timeout**: 15-30 seconds per test
+- **Output**: Screenshots and videos on failure
+- **Reports**: HTML report generated automatically
 
 ## Test Data
 
-The tests use various test credentials:
-- `test@example.com` / `testpassword123` for basic testing
-- Generated unique emails for sign up tests
-- Invalid emails and passwords for validation testing
-
-## Environment Setup
-
-For successful authentication tests, you would need:
-1. A test Supabase environment
-2. Test user accounts in your database
-3. Environment variables for test configuration
-
-## Test Categories
-
-### UI/UX Tests
-- Modal opening/closing
-- Form field interactions
-- Button states and loading indicators
-- Error message display
-
-### Validation Tests
-- Email format validation
-- Password length validation
-- Invalid domain handling
-- Empty form submission
-
-### Accessibility Tests
-- Modal focus management
-- Keyboard navigation
-- ARIA attributes
-- Screen reader compatibility
-
-### Integration Tests
-- Authentication flow end-to-end
-- Error handling from API
-- State management across components
-
-## Best Practices
-
-1. **Use Helper Functions**: Utilize the helper classes for common actions
-2. **Test Real User Flows**: Focus on complete user journeys
-3. **Handle Async Operations**: Properly wait for loading states and API responses
-4. **Test Error Cases**: Ensure error handling works correctly
-5. **Accessibility**: Include accessibility checks in tests
-6. **Maintainable Selectors**: Use semantic locators (roles, labels) over CSS selectors
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Modal not opening**: Check if the sign in button is visible and clickable
-2. **Form submission fails**: Verify form validation and required fields
-3. **Timeout errors**: Increase timeouts for slow operations or network requests
-4. **Flaky tests**: Add proper waits and check for element states
-
-### Debug Tips
-
-1. Use `--debug` flag to step through tests
-2. Add `await page.pause()` to pause execution
-3. Use `page.screenshot()` to capture current state
-4. Check browser console for JavaScript errors
-
-## Future Improvements
-
-1. **Mock API Responses**: Add API mocking for more reliable tests
-2. **Test Data Management**: Implement database seeding/cleanup
-3. **Visual Regression**: Add screenshot comparison tests
-4. **Performance Tests**: Add lighthouse audit integration
-5. **Cross-browser Testing**: Expand browser coverage
-6. **Mobile Testing**: Add mobile viewport tests 
+- `test@example.com` / `testpassword123` for basic authentication tests
+- Generated unique emails for validation testing
+- Invalid email domains and short passwords for error testing 
