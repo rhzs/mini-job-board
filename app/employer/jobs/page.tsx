@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import Header from '@/components/header'
+import HeaderWrapper from '@/components/header-wrapper'
 import Footer from '@/components/footer'
 import { EmployerDashboard } from '@/components/employer/employer-dashboard'
 
@@ -11,7 +11,7 @@ import { EmployerDashboard } from '@/components/employer/employer-dashboard'
 function EmployerJobsLoading() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <HeaderWrapper />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="space-y-6">
           {/* Header skeleton */}
@@ -80,7 +80,7 @@ export default function EmployerJobsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <HeaderWrapper />
       <main>
         <EmployerDashboard />
       </main>

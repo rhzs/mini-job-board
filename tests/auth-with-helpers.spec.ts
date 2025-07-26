@@ -108,9 +108,9 @@ test.describe('Authentication Tests with Helpers', () => {
     const auth = new AuthHelpers(page);
     const testData = TestDataGenerator.getTestCredentials();
 
-    // Test with very long password
+    // Test with very long password - use valid domain to avoid email validation error
     await auth.openSignUpModal();
-    await auth.fillSignUpForm(testData.validEmail, testData.longPassword);
+    await auth.fillSignUpForm('test@gmail.com', testData.longPassword);
     await auth.submitSignUpForm();
     
     // Should still work (password length is usually not limited on upper end)
@@ -123,10 +123,10 @@ test.describe('Authentication Tests with Helpers', () => {
     const email2 = TestDataGenerator.generateUniqueEmail();
     
     expect(email1).not.toBe(email2);
-    expect(email1).toMatch(/test\+\d+@example\.com/);
+    expect(email1).toMatch(/test\+\d+@example\.com/); // Pattern matches timestamp + random number
     
     const validEmail = TestDataGenerator.generateValidEmail();
-    expect(validEmail).toMatch(/valid\+\d+@gmail\.com/);
+    expect(validEmail).toMatch(/valid\+\d+@gmail\.com/); // Pattern matches timestamp + random number
     
     const credentials = TestDataGenerator.getTestCredentials();
     expect(credentials.validEmail).toBe('test@example.com');

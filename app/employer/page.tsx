@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import Header from '@/components/header'
+import HeaderWrapper from '@/components/header-wrapper'
 import Footer from '@/components/footer'
 import { EmployerOverview } from '@/components/employer/employer-overview'
 import { useAuth } from '@/lib/auth-context'
@@ -11,7 +11,7 @@ import { useEffect } from 'react'
 function EmployerLoading() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <HeaderWrapper />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-muted rounded w-1/3"></div>
@@ -47,7 +47,7 @@ export default function EmployerPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <HeaderWrapper />
       <main className="flex-1">
         <EmployerOverview />
       </main>

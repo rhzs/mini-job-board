@@ -92,7 +92,8 @@ export class AuthHelpers {
 
   // Switch from sign up to sign in
   async switchToSignIn() {
-    await this.page.getByRole('button', { name: 'Sign in' }).click();
+    // Click the "Sign in" button inside the modal, not the header
+    await this.page.locator('[role="dialog"]').getByRole('button', { name: 'Sign in' }).click();
     await expect(this.page.getByText('Ready to take the next step?')).toBeVisible();
   }
 
@@ -126,11 +127,12 @@ export class AuthHelpers {
 // Test data generator
 export class TestDataGenerator {
   static generateUniqueEmail(): string {
-    return `test+${Date.now()}@example.com`;
+    // Use Date.now() + random number to ensure uniqueness even in fast tests
+    return `test+${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
   }
 
   static generateValidEmail(): string {
-    return `valid+${Date.now()}@gmail.com`;
+    return `valid+${Date.now()}${Math.floor(Math.random() * 1000)}@gmail.com`;
   }
 
   static getTestCredentials() {

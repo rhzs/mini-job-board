@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Header from "@/components/header"
+import HeaderWrapper from "@/components/header-wrapper"
 import Footer from "@/components/footer"
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,34 @@ import { fetchCompanies, getPopularCompanies, type CompanyFilters as SupabaseCom
 import { Company } from '@/lib/database.types'
 import { Search, Building2, Star } from 'lucide-react'
 
-export default function CompaniesPage() {
+function CompaniesPageLoading() {
+  return (
+    <div className="min-h-screen bg-background">
+      <HeaderWrapper />
+      <main className="flex-1">
+        <div className="bg-gradient-to-b from-blue-50 to-background dark:from-gray-900 dark:to-background border-b border-border">
+          <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+            <div className="animate-pulse space-y-4">
+              <div className="h-16 w-16 bg-muted rounded-full mx-auto"></div>
+              <div className="h-8 bg-muted rounded w-1/2 mx-auto"></div>
+              <div className="h-6 bg-muted rounded w-1/3 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-muted rounded-lg h-52" />
+            ))}
+          </div>
+        </div>
+      </main>      
+      <Footer />
+    </div>
+  )
+}
+
+function CompaniesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -101,7 +128,7 @@ export default function CompaniesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <HeaderWrapper />
       
       <main className="flex-1">
         {/* Hero Section */}
@@ -251,5 +278,13 @@ export default function CompaniesPage() {
       
       <Footer />
     </div>
+  )
+}
+
+export default function CompaniesPage() {
+  return (
+    <Suspense fallback={<CompaniesPageLoading />}>
+      <CompaniesPageContent />
+    </Suspense>
   )
 } 

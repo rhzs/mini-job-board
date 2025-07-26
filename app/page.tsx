@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import Header from "@/components/header"
+import HeaderWrapper from "@/components/header-wrapper"
 import Footer from "@/components/footer"
 import HeroSection from "@/components/hero-section"
 import { JobSearchPage } from "@/components/jobs/job-search-page"
@@ -19,7 +19,7 @@ import { useAuth } from '@/lib/auth-context'
 function PageLoading() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <HeaderWrapper />
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
@@ -63,7 +63,7 @@ function PageContent() {
     
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <HeaderWrapper />
         <main className="flex-1">
           <MyJobsDashboard />
         </main>
@@ -76,7 +76,7 @@ function PageContent() {
   if (query || location || user) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <HeaderWrapper />
         <main className="flex-1">
           <JobSearchPage 
             initialQuery={query} 
@@ -95,7 +95,7 @@ function PageContent() {
   // Homepage for anonymous users
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <HeaderWrapper />
       <main className="flex-1">
         <HeroSection />
       </main>
