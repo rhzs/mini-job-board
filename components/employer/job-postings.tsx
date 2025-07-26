@@ -68,11 +68,26 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
     }
 
     try {
+      // Fetch company name from companies table using company_id
+      let companyName = 'Unknown Company'
+      if (jobData.company_id) {
+        const { data: companyData, error: companyError } = await supabase
+          .from('companies')
+          .select('name')
+          .eq('id', jobData.company_id)
+          .single()
+        
+        if (!companyError && companyData) {
+          companyName = companyData.name
+        }
+      }
+
       const jobPosting: Omit<JobPosting, 'id' | 'created_at' | 'updated_at'> = {
         employer_id: user.id,
         title: jobData.title,
         description: jobData.description,
         company_id: jobData.company_id,
+        company_name: companyName, // Add the missing required field
         location: jobData.location,
         job_type: jobData.job_type,
         remote_allowed: jobData.remote_allowed,
@@ -94,7 +109,7 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
         view_count: 0,
         application_count: 0,
         posted_date: new Date().toISOString(),
-        last_updated: new Date().toISOString(),
+        last_updated: new Date().toISOString()
       }
 
       const { data, error } = await supabase
