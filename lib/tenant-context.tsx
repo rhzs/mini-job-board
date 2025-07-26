@@ -24,6 +24,18 @@ export function useTenant() {
   return context
 }
 
+// Helper function to determine if user is in company mode
+export function useIsCompanyMode() {
+  const { currentCompany } = useTenant()
+  return !!currentCompany
+}
+
+// Helper function to switch to personal mode
+export function usePersonalMode() {
+  const { switchToPersonal } = useTenant()
+  return switchToPersonal
+}
+
 interface TenantProviderProps {
   children: React.ReactNode
 }
@@ -251,10 +263,21 @@ export function TenantProvider({ children }: TenantProviderProps) {
     }
   }
 
+  const switchToPersonal = () => {
+    setCurrentCompany(undefined)
+    // Clear current company from user metadata
+    if (user) {
+      supabase.auth.updateUser({
+        data: { current_company_id: null }
+      })
+    }
+  }
+
   const contextValue: TenantContext = {
     currentCompany,
     userCompanies,
     switchCompany,
+    switchToPersonal,
     createCompany,
     joinCompany,
     leaveCompany,

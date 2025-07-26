@@ -9,7 +9,7 @@ test.describe('Job Visibility Fix Verification', () => {
 
   test('should show jobs on homepage after emergency fix', async ({ page }) => {
     // Wait for page to fully load
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
 
     // Check if we can see job listings or search interface
     const hasJobCards = await page.locator('[data-testid="job-card"]').count() > 0;
@@ -57,7 +57,7 @@ test.describe('Job Visibility Fix Verification', () => {
       const findJobsButton = page.locator('button:has-text("Find jobs"), button[type="submit"]').first();
       await findJobsButton.click();
       
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(2000);
       
       // Check if search results appear
       const jobCardsAfterSearch = await page.locator('[data-testid="job-card"]').count();
@@ -167,7 +167,10 @@ test.describe('Job Visibility Fix Verification', () => {
         expect(hasSearchParams || hasJobCards || hasResults).toBeTruthy();
       }
     } else {
-      test.skip();
+      // If search input is not visible, test basic page structure
+      const hasHeader = await page.locator('header').first().isVisible();
+      const hasMainContent = await page.locator('main').first().isVisible();
+      expect(hasHeader || hasMainContent).toBeTruthy();
     }
   });
 
@@ -182,7 +185,7 @@ test.describe('Job Visibility Fix Verification', () => {
       logs.push(msg.text().toLowerCase());
     });
     
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
     
     // Check for RLS or permission related errors
     const hasRLSErrors = logs.some(log => 

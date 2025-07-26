@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { ChevronDown, Building2, Plus, Users, Settings } from 'lucide-react'
+import { ChevronDown, Building2, Plus, Users, Settings, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { 
   DropdownMenu, 
@@ -26,8 +27,9 @@ export default function CompanySelector({
   onManageCompany 
 }: CompanySelectorProps) {
   const { user } = useAuth()
-  const { currentCompany, userCompanies, switchCompany, isLoading } = useTenant()
+  const { currentCompany, userCompanies, switchCompany, switchToPersonal, isLoading } = useTenant()
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
 
   if (!user) {
     return null
@@ -90,10 +92,13 @@ export default function CompanySelector({
             </>
           ) : (
             <>
-              <Building2 className="w-5 h-5 text-muted-foreground" />
-              <span className="hidden sm:inline text-sm text-muted-foreground">
-                Select Company
+              <User className="w-5 h-5 text-green-600" />
+              <span className="hidden sm:inline text-sm font-medium text-green-600">
+                Personal Mode
               </span>
+              <Badge variant="outline" className="hidden md:inline text-xs border-green-600 text-green-600">
+                Personal
+              </Badge>
             </>
           )}
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -101,51 +106,65 @@ export default function CompanySelector({
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="start" className="w-80">
-        {/* Current Company Section */}
-        {currentCompany && (
-          <>
-            <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
-              Current Company
-            </div>
-            <div className="px-3 py-2 bg-accent/50 rounded-md mx-2 mb-2">
-              <div className="flex items-center gap-3">
-                {currentCompany.logo_url ? (
-                  <img 
-                    src={currentCompany.logo_url} 
-                    alt={currentCompany.company_name}
-                    className="w-8 h-8 rounded object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
-                    {getCompanyInitials(currentCompany.company_name)}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">
-                    {currentCompany.company_name}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={`text-xs ${getRoleColor(currentCompany.role)}`}>
-                      {currentCompany.role}
-                    </Badge>
-                    {currentCompany.location && (
-                      <span className="text-xs text-muted-foreground truncate">
-                        {currentCompany.location}
-                      </span>
-                    )}
-                  </div>
+        {/* Current Mode Section */}
+        <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
+          Current Mode
+        </div>
+        {currentCompany ? (
+          <div className="px-3 py-2 bg-accent/50 rounded-md mx-2 mb-2">
+            <div className="flex items-center gap-3">
+              {currentCompany.logo_url ? (
+                <img 
+                  src={currentCompany.logo_url} 
+                  alt={currentCompany.company_name}
+                  className="w-8 h-8 rounded object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+                  {getCompanyInitials(currentCompany.company_name)}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm truncate">
+                  {currentCompany.company_name}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={`text-xs ${getRoleColor(currentCompany.role)}`}>
+                    {currentCompany.role}
+                  </Badge>
+                  {currentCompany.location && (
+                    <span className="text-xs text-muted-foreground truncate">
+                      {currentCompany.location}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
-          </>
+          </div>
+        ) : (
+          <div className="px-3 py-2 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md mx-2 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm text-green-700 dark:text-green-400">
+                  Personal Mode
+                </div>
+                <div className="text-xs text-green-600 dark:text-green-500">
+                  Browsing jobs as an individual
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Switch Company Section */}
-        {userCompanies.length > 1 && (
+        {/* Available Companies Section */}
+        {userCompanies.length > 0 && (currentCompany ? userCompanies.length > 1 : true) && (
           <>
             <DropdownMenuSeparator />
             <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
-              Switch Company
+              {currentCompany ? 'Switch Company' : 'Available Companies'}
             </div>
             {userCompanies
               .filter(company => company.company_id !== currentCompany?.company_id)
@@ -191,11 +210,36 @@ export default function CompanySelector({
         {/* Actions Section */}
         <DropdownMenuSeparator />
         
+        {/* Personal Mode Option - only show if not already in personal mode */}
+        {currentCompany && (
+          <DropdownMenuItem 
+            className="cursor-pointer p-3"
+            onClick={() => {
+              setIsOpen(false)
+              switchToPersonal()
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                <User className="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <div className="font-medium text-sm">Switch to Personal Mode</div>
+                <div className="text-xs text-muted-foreground">
+                  Browse jobs as an individual
+                </div>
+              </div>
+            </div>
+          </DropdownMenuItem>
+        )}
+
+        <DropdownMenuSeparator />
+
         <DropdownMenuItem 
           className="cursor-pointer p-3"
           onClick={() => {
             setIsOpen(false)
-            onCreateCompany()
+            router.push('/company/create')
           }}
         >
           <div className="flex items-center gap-3">

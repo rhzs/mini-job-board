@@ -23,14 +23,22 @@ export function convertJobPostingToJob(jobPosting: JobPosting) {
     salary: jobPosting.salary_min && jobPosting.salary_max ? {
       min: jobPosting.salary_min,
       max: jobPosting.salary_max,
-      period: jobPosting.salary_period || 'month',
+      period: (jobPosting.salary_period as 'hour' | 'day' | 'week' | 'month' | 'year') || 'month',
       currency: jobPosting.salary_currency || 'S$'
     } : undefined,
     jobType: jobPosting.job_type || [],
     remote: jobPosting.remote_allowed || false,
     description: jobPosting.description,
-    requirements: jobPosting.requirements || [],
-    benefits: jobPosting.benefits || [],
+    requirements: Array.isArray(jobPosting.requirements) 
+      ? jobPosting.requirements 
+      : jobPosting.requirements 
+        ? [jobPosting.requirements] 
+        : [],
+    benefits: Array.isArray(jobPosting.benefits) 
+      ? jobPosting.benefits 
+      : jobPosting.benefits 
+        ? [jobPosting.benefits] 
+        : [],
     postedDate: jobPosting.posted_date,
     easyApply: jobPosting.easy_apply,
     responseRate: undefined, // Not in database schema

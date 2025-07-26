@@ -85,10 +85,10 @@ export function CompanyCard({ company, onClick, showFullInfo = false }: CompanyC
             {/* Rating and Reviews */}
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-0.5">
-                {renderStars(company.average_rating)}
+                {renderStars(company.average_rating || 0)}
               </div>
               <span className="text-primary font-medium text-sm hover:underline">
-                {formatReviewCount(company.total_reviews)}
+                {formatReviewCount(company.total_reviews || 0)}
               </span>
             </div>
           </div>
@@ -168,12 +168,12 @@ export function CompanyCard({ company, onClick, showFullInfo = false }: CompanyC
           </button>
         </div>
         
-        {/* Featured Badge */}
-        {company.is_featured && (
+        {/* Featured Badge - commented out since is_featured is not available */}
+        {/* {company.is_featured && (
           <div className="absolute top-3 right-3 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 text-xs px-2 py-1 rounded-full font-medium">
             ⭐ Featured
           </div>
-        )}
+        )} */}
       </CardContent>
     </Card>
   )

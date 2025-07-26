@@ -253,9 +253,9 @@ export function JobDetail({ job }: JobDetailProps) {
             
             {job.requirements && job.requirements.length > 0 && (() => {
               // Filter out requirements that are the same as the job description to avoid duplication
-              const uniqueRequirements = job.requirements.filter(req => 
-                req.trim() !== job.description.trim()
-              );
+              const uniqueRequirements = job.requirements
+                .filter(req => typeof req === 'string' && req.trim().length > 0)
+                .filter(req => req.trim() !== job.description.trim());
               return uniqueRequirements.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
@@ -271,19 +271,24 @@ export function JobDetail({ job }: JobDetailProps) {
               )
             })()}
 
-            {job.benefits && job.benefits.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  Benefits:
-                </h3>
-                <ul className="list-disc list-inside space-y-2 ml-6">
-                  {job.benefits.map((benefit, index) => (
-                    <li key={index} className="text-foreground">{benefit}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {job.benefits && job.benefits.length > 0 && (() => {
+              const validBenefits = job.benefits.filter(benefit => 
+                typeof benefit === 'string' && benefit.trim().length > 0
+              );
+              return validBenefits.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    Benefits:
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-6">
+                    {validBenefits.map((benefit, index) => (
+                      <li key={index} className="text-foreground">{benefit}</li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })()}
 
             {job.salary && (
               <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">

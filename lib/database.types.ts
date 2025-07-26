@@ -384,6 +384,7 @@ export interface TenantContext {
   currentCompany?: UserCompanyMembership
   userCompanies: UserCompanyMembership[]
   switchCompany: (companyId: string) => Promise<void>
+  switchToPersonal: () => void
   createCompany: (data: CompanyFormData) => Promise<Company>
   joinCompany: (request: CompanyJoinRequest) => Promise<UserCompany>
   leaveCompany: (companyId: string) => Promise<void>
@@ -465,6 +466,42 @@ export interface JobPostingFormData {
   application_deadline?: string
   contact_email?: string
   company_website?: string
+}
+
+export interface ApplicationFormData {
+  cover_letter: string
+  resume_url: string
+  why_interested: string
+}
+
+export interface JobApplication {
+  id: string
+  user_id: string
+  job_id: string
+  status: 'applied' | 'reviewed' | 'interviewing' | 'rejected' | 'hired' | 'withdrawn'
+  applied_date: string
+  cover_letter?: string
+  resume_url?: string
+  job_title: string
+  company_name: string
+  job_location: string
+  job_salary?: string
+  job_type: string[]
+  last_updated: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface UserPreferences {
+  job_titles?: string[]
+  city?: string
+  country?: string
+  postcode?: string
+  remote_work?: boolean
+  minimum_pay?: number
+  pay_period?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  onboarding_completed?: boolean
 }
 
 // Legacy interfaces for backward compatibility

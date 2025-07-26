@@ -82,7 +82,7 @@ test.describe('Job Management UI Tests', () => {
     if (await dropdownTriggers.count() > 0) {
       await dropdownTriggers.first().click();
       
-      await expect(page.getByText('Edit job')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Edit job')).toBeVisible({ timeout: 2500 });
       await expect(page.getByText('Duplicate job')).toBeVisible();
       await expect(page.getByText('View job')).toBeVisible();
       await expect(page.getByText('View applications')).toBeVisible();

@@ -62,9 +62,9 @@ export function MyJobsDashboard() {
 
   // Filter applications by status
   const appliedJobs = applications.filter(app => app.status === 'applied')
-  const interviewJobs = applications.filter(app => app.status === 'interview')
+  const interviewJobs = applications.filter(app => app.status === 'interviewing')
   const archivedJobs = applications.filter(app => 
-    app.status === 'rejected' || app.status === 'withdrawn' || app.status === 'archived'
+    app.status === 'rejected' || app.status === 'withdrawn' || app.status === 'hired'
   )
 
   // Get full job objects for saved jobs
@@ -217,7 +217,7 @@ function JobItemCard({ item, onStatusUpdate, onJobClick }: JobItemCardProps) {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-medium text-foreground hover:text-indeed-blue transition-colors">{application.job_title}</h3>
-            {application.status === 'interview' && (
+                            {application.status === 'interviewing' && (
               <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
                 Interview
               </span>
@@ -237,7 +237,7 @@ function JobItemCard({ item, onStatusUpdate, onJobClick }: JobItemCardProps) {
               variant="outline"
               onClick={(e) => {
                 e.stopPropagation()
-                onStatusUpdate(application.id, 'interview')
+                                  onStatusUpdate(application.id, 'interviewing')
               }}
             >
               <Calendar className="h-4 w-4 mr-1" />

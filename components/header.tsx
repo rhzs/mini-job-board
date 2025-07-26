@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { User } from "lucide-react"
+import { User, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import CompanySelector from "@/components/tenant/company-selector"
+import { useIsCompanyMode, usePersonalMode } from "@/lib/tenant-context"
 
 export default function Header() {
   const { user, openSignIn, signOut } = useAuth()
@@ -16,6 +17,8 @@ export default function Header() {
   const [mounted, setMounted] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
+  const isCompanyMode = useIsCompanyMode()
+  const switchToPersonal = usePersonalMode()
 
   // Handle hydration
   useEffect(() => {
@@ -48,47 +51,74 @@ export default function Header() {
               </button>
             </div>
             <nav className="hidden md:flex items-center space-x-8 h-16">
-              <button 
-                onClick={() => handleNavigation('/')}
-                className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
-                  isHome ? 'text-indeed-blue' : 'text-foreground'
-                }`}
-              >
-                Home
-                {isHome && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
-                )}
-              </button>
-              {user && (
-                <button 
-                  onClick={() => handleNavigation('/?page=my-jobs')}
-                  className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
-                    isMyJobs ? 'text-indeed-blue' : 'text-foreground'
-                  }`}
-                >
-                  My jobs
-                  {isMyJobs && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+              {/* Company Mode Navigation */}
+              {isCompanyMode ? (
+                <>
+                  <button 
+                    onClick={() => handleNavigation('/')}
+                    className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
+                      isHome ? 'text-indeed-blue' : 'text-foreground'
+                    }`}
+                  >
+                    Dashboard
+                    {isHome && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+                    )}
+                  </button>
+                  <button 
+                    onClick={switchToPersonal}
+                    className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Switch to Personal
+                  </button>
+                </>
+              ) : (
+                /* Personal Mode Navigation */
+                <>
+                  <button 
+                    onClick={() => handleNavigation('/')}
+                    className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
+                      isHome ? 'text-indeed-blue' : 'text-foreground'
+                    }`}
+                  >
+                    Home
+                    {isHome && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+                    )}
+                  </button>
+                  {user && (
+                    <button 
+                      onClick={() => handleNavigation('/?page=my-jobs')}
+                      className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
+                        isMyJobs ? 'text-indeed-blue' : 'text-foreground'
+                      }`}
+                    >
+                      My jobs
+                      {isMyJobs && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+                      )}
+                    </button>
                   )}
-                </button>
+                  <button 
+                    onClick={() => handleNavigation('/companies')}
+                    className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
+                      pathname === '/companies' ? 'text-indeed-blue' : 'text-foreground'
+                    }`}
+                  >
+                    Company reviews
+                    {pathname === '/companies' && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
+                    )}
+                  </button>
+                  <a 
+                    href="#" 
+                    className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
+                  >
+                    Salary guide
+                  </a>
+                </>
               )}
-              <button 
-                onClick={() => handleNavigation('/companies')}
-                className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
-                  pathname === '/companies' ? 'text-indeed-blue' : 'text-foreground'
-                }`}
-              >
-                Company reviews
-                {pathname === '/companies' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
-                )}
-              </button>
-              <a 
-                href="#" 
-                className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
-              >
-                Salary guide
-              </a>
             </nav>
           </div>
 
@@ -131,17 +161,19 @@ export default function Header() {
               </Button>
             )}
             
-            {/* Separator and Employers button - always visible */}
-            <div className="flex items-center space-x-4">
-              <span className="text-muted-foreground/50">|</span>
-              <Button 
-                variant="link" 
-                className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
-                onClick={() => handleNavigation('/employer')}
-              >
-                Employers / Post Job
-              </Button>
-            </div>
+            {/* Separator and Employers button - only show in personal mode */}
+            {!isCompanyMode && (
+              <div className="flex items-center space-x-4">
+                <span className="text-muted-foreground/50">|</span>
+                <Button 
+                  variant="link" 
+                  className="text-indeed-blue hover:text-indeed-blue-dark font-medium h-auto p-0"
+                  onClick={() => handleNavigation('/employer')}
+                >
+                  Employers / Post Job
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

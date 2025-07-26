@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowRight, ArrowLeft, Search, MapPin, X, Check, Plus } from 'lucide-react'
 import { useJobPostings } from './job-postings'
+import { useTenant } from '@/lib/tenant-context'
 
 interface JobPostingModalProps {
   isOpen: boolean
@@ -80,10 +81,11 @@ const initialFormData: JobFormData = {
   hiringCount: 0,
   contactName: '',
   phoneNumber: '',
-      companyId: 'recruit-express-sg'
+      companyId: ''
 }
 
 export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' }: JobPostingModalProps) {
+  const { currentCompany } = useTenant()
   const [currentStep, setCurrentStep] = useState(() => {
     // In edit mode, skip template selection and start from step 2
     if (mode === 'edit') {
@@ -130,7 +132,7 @@ export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' 
         hiringCount: 1, // Default
         contactName: '', // No direct mapping in JobPosting
         phoneNumber: '', // No direct mapping in JobPosting
-        companyId: existingJob.company_id || 'recruit-express-sg'
+        companyId: existingJob.company_id || currentCompany?.company_id || ''
       }
     }
     
@@ -149,6 +151,13 @@ export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' 
   })
   const { createJobPosting, updateJobPosting } = useJobPostings()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Set company ID when currentCompany changes (for new jobs)
+  useEffect(() => {
+    if (mode === 'create' && currentCompany && !formData.companyId) {
+      setFormData(prev => ({ ...prev, companyId: currentCompany.company_id }))
+    }
+  }, [currentCompany, mode, formData.companyId])
 
   // Reset form data when existingJob changes (for edit mode)
   useEffect(() => {
@@ -178,7 +187,7 @@ export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' 
         hiringCount: 1,
         contactName: '',
         phoneNumber: '',
-        companyId: existingJob.company_id || 'recruit-express-sg'
+        companyId: existingJob.company_id || currentCompany?.company_id || ''
       })
       setCurrentStep(2) // Start at basics step for edit mode
     }
@@ -237,8 +246,8 @@ export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' 
         salary_period: formData.payRate.replace('per ', '') as 'hour' | 'day' | 'week' | 'month' | 'year',
         salary_currency: 'IDR',
         description: formData.description,
-        requirements: [],
-        benefits: [],
+        requirements: '',
+        benefits: '',
         experience_level: 'Mid' as 'Mid' | 'Entry' | 'Senior' | 'Lead' | 'Executive',
         easy_apply: true,
         application_deadline: formData.hasDeadline ? formData.deadline : undefined,
