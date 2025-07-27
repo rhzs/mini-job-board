@@ -204,6 +204,31 @@ export async function fetchJobById(id: string): Promise<JobPosting | null> {
   }
 }
 
+// Fetch multiple jobs by their IDs
+export async function fetchJobsByIds(ids: string[]): Promise<JobPosting[]> {
+  if (ids.length === 0) {
+    return []
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('job_postings')
+      .select('*')
+      .in('id', ids)
+      .eq('status', 'active')
+
+    if (error) {
+      console.error('Error fetching jobs:', error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error('Error fetching jobs:', error)
+    return []
+  }
+}
+
 // Increment view count for a job
 export async function incrementJobViewCount(jobId: string): Promise<void> {
   try {

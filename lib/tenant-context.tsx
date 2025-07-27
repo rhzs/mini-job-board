@@ -54,6 +54,7 @@ export function TenantProvider({ children }: TenantProviderProps) {
     } else {
       setCurrentCompany(undefined)
       setUserCompanies([])
+      setIsExplicitPersonalMode(false)
     }
   }, [user])
 
@@ -79,32 +80,37 @@ export function TenantProvider({ children }: TenantProviderProps) {
 
       setUserCompanies(memberships || [])
 
-      // Set current company from user metadata or first available
-      let currentCompanyId = user.user_metadata?.current_company_id
+      // Check if user explicitly chose personal mode
+      const currentCompanyId = user.user_metadata?.current_company_id
+      const isPersonalMode = currentCompanyId === 'PERSONAL_MODE'
       
-      // Only auto-select first company if:
-      // 1. No company ID is set (undefined/null)
-      // 2. User has companies available  
-      // 3. User hasn't explicitly switched to personal mode
-      if (!currentCompanyId && memberships && memberships.length > 0 && !isExplicitPersonalMode) {
-        currentCompanyId = memberships[0].company_id
-      }
+      // Update local state to match persisted preference
+      setIsExplicitPersonalMode(isPersonalMode)
 
-      if (currentCompanyId) {
+      if (isPersonalMode) {
+        // User explicitly chose personal mode - stay in personal mode
+        setCurrentCompany(undefined)
+      } else if (currentCompanyId && currentCompanyId !== 'PERSONAL_MODE') {
+        // User has a specific company selected
         const currentMembership = memberships?.find(m => m.company_id === currentCompanyId)
         if (currentMembership) {
           setCurrentCompany(currentMembership)
-          // Clear explicit personal mode when loading a company
-          setIsExplicitPersonalMode(false)
-          
-          // Update user metadata if needed
-          if (user.user_metadata?.current_company_id !== currentCompanyId) {
-            await updateUserCurrentCompany(currentCompanyId)
-          }
+        } else if (memberships && memberships.length > 0) {
+          // Selected company no longer exists, default to first available
+          const firstCompany = memberships[0]
+          setCurrentCompany(firstCompany)
+          await updateUserCurrentCompany(firstCompany.company_id)
+        } else {
+          // No companies available
+          setCurrentCompany(undefined)
         }
       } else {
-        // If no company ID and not explicit personal mode, clear current company
-        if (!isExplicitPersonalMode) {
+        // No preference set - auto-select first company if available
+        if (memberships && memberships.length > 0) {
+          const firstCompany = memberships[0]
+          setCurrentCompany(firstCompany)
+          await updateUserCurrentCompany(firstCompany.company_id)
+        } else {
           setCurrentCompany(undefined)
         }
       }
@@ -219,7 +225,8 @@ export function TenantProvider({ children }: TenantProviderProps) {
       // Add to userCompanies state directly (faster than reloading)
       setUserCompanies(prev => [...prev, newMembership])
 
-      // Set as current company directly
+      // Set as current company directly and clear personal mode
+      setIsExplicitPersonalMode(false)
       setCurrentCompany(newMembership)
       await updateUserCurrentCompany(company.id)
       
@@ -298,8 +305,10 @@ export function TenantProvider({ children }: TenantProviderProps) {
         if (remainingCompanies.length > 0) {
           await switchCompany(remainingCompanies[0].company_id)
         } else {
+          // No companies left - switch to personal mode
+          setIsExplicitPersonalMode(true)
           setCurrentCompany(undefined)
-          await updateUserCurrentCompany('')
+          await updateUserCurrentCompany('PERSONAL_MODE')
         }
       }
 
@@ -322,7 +331,7 @@ export function TenantProvider({ children }: TenantProviderProps) {
     if (user) {
       try {
         const { error } = await supabase.auth.updateUser({
-          data: { current_company_id: null }
+          data: { current_company_id: 'PERSONAL_MODE' }
         })
         if (error) {
           console.error('Error updating user metadata:', error)

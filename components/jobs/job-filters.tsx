@@ -3,7 +3,17 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { JobFilters as JobFiltersType } from './job-search-page'
-import { salaryRanges } from '@/lib/mock-data'
+
+// Salary ranges constant (moved from mock-data)
+const salaryRanges = [
+  { label: 'S$2,000 - S$4,000', min: 2000, max: 4000 },
+  { label: 'S$4,000 - S$6,000', min: 4000, max: 6000 },
+  { label: 'S$5,000 - S$8,000', min: 5000, max: 8000 },
+  { label: 'S$8,000 - S$12,000', min: 8000, max: 12000 },
+  { label: 'S$10,000 - S$15,000', min: 10000, max: 15000 },
+  { label: 'S$15,000 - S$20,000', min: 15000, max: 20000 },
+  { label: 'S$20,000+', min: 20000, max: Infinity }
+]
 
 
 interface JobFiltersProps {

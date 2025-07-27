@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { useJobApplications } from '@/components/jobs/job-applications'
 import { useSavedJobs } from '@/components/jobs/saved-jobs'
 import { useAuth } from '@/lib/auth-context'
-import { JobApplication } from '@/lib/database.types'
-import { mockJobs } from '@/lib/mock-data'
+import { JobApplication, Job } from '@/lib/database.types'
+import { fetchJobsByIds, convertJobPostingToJob } from '@/lib/supabase-jobs'
 import { Heart, ExternalLink, Calendar, MoreVertical, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -40,10 +40,38 @@ function LoadingSkeleton() {
 
 export function MyJobsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('saved')
+  const [fullSavedJobs, setFullSavedJobs] = useState<Job[]>([])
+  const [savedJobsDataLoading, setSavedJobsDataLoading] = useState(false)
   const { user, loading: authLoading } = useAuth()
   const { applications, updateApplicationStatus, loading: applicationsLoading } = useJobApplications()
   const { savedJobs, loading: savedJobsLoading } = useSavedJobs()
   const router = useRouter()
+
+  // Fetch full job data for saved jobs
+  useEffect(() => {
+    async function fetchSavedJobsData() {
+      if (savedJobs.length === 0) {
+        setFullSavedJobs([])
+        return
+      }
+
+      setSavedJobsDataLoading(true)
+      try {
+        const jobPostings = await fetchJobsByIds(savedJobs)
+        const jobs = jobPostings.map(convertJobPostingToJob)
+        setFullSavedJobs(jobs)
+      } catch (error) {
+        console.error('Error fetching saved jobs data:', error)
+        setFullSavedJobs([])
+      } finally {
+        setSavedJobsDataLoading(false)
+      }
+    }
+
+    if (!savedJobsLoading) {
+      fetchSavedJobsData()
+    }
+  }, [savedJobs, savedJobsLoading])
 
   // Redirect to home if user is not authenticated
   useEffect(() => {
@@ -53,7 +81,7 @@ export function MyJobsDashboard() {
   }, [user, authLoading, router])
 
   // Show loading state if auth is loading OR if either data source is still loading
-  const isLoading = authLoading || applicationsLoading || savedJobsLoading
+  const isLoading = authLoading || applicationsLoading || savedJobsLoading || savedJobsDataLoading
 
   // Don't render anything if user is not authenticated (will redirect)
   if (!authLoading && !user) {
@@ -66,11 +94,6 @@ export function MyJobsDashboard() {
   const archivedJobs = applications.filter(app => 
     app.status === 'rejected' || app.status === 'withdrawn' || app.status === 'hired'
   )
-
-  // Get full job objects for saved jobs
-  const fullSavedJobs = savedJobs
-    .map(jobId => mockJobs.find(job => job.id === jobId))
-    .filter(Boolean) // Remove any undefined values
 
   const tabs = [
     { id: 'saved' as TabType, label: 'Saved', count: fullSavedJobs.length },

@@ -1,4 +1,4 @@
-import { Job } from './mock-data'
+import { Job } from './database.types'
 import { UserPreferences } from './database.types'
 
 export interface JobMatchScore {
