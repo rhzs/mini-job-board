@@ -40,7 +40,11 @@ test.describe('Multi-Tenant Company Management', () => {
         
         // Fill company form
         await expect(page).toHaveURL('/company/create');
-        await page.getByLabel('Company Name').fill('Test Tech Corp');
+        
+        // Wait for form to be fully loaded - look for the company name input
+        await page.waitForSelector('input[placeholder="Enter your company name"]', { timeout: 10000 });
+        
+        await page.getByLabel('Company Name *').fill('Test Tech Corp');
         await page.getByLabel('Email Domain *').fill('techcorp.sg');
         await page.getByLabel('Description').fill('A test technology company');
         await page.getByLabel('Location').fill('Singapore');

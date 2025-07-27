@@ -162,22 +162,26 @@ export function TenantProvider({ children }: TenantProviderProps) {
       const slug = generateSlug(data.name)
 
       // Create the company
+      const companyData: any = {
+        name: data.name,
+        slug: slug, // Add the generated slug
+        email_domain: data.email_domain,
+        auto_approve_domain: data.auto_approve_domain || false,
+        is_verified: true, // Auto-verify companies created by users
+        created_by: user.id
+      }
+
+      // Only include optional fields if they have values
+      if (data.description?.trim()) companyData.description = data.description
+      if (data.website?.trim()) companyData.website = data.website
+      if (data.location?.trim()) companyData.headquarters = data.location
+      if (data.industry?.trim()) companyData.industry = data.industry
+      if (data.size?.trim()) companyData.company_size = data.size
+      if (data.founded_year) companyData.founded_year = data.founded_year
+
       const { data: company, error: companyError } = await supabase
         .from('companies')
-        .insert({
-          name: data.name,
-          slug: slug, // Add the generated slug
-          description: data.description,
-          website: data.website,
-          headquarters: data.location, // Map location to headquarters column
-          industry: data.industry,
-          company_size: data.size, // Map size to company_size column
-          founded_year: data.founded_year,
-          email_domain: data.email_domain,
-          auto_approve_domain: data.auto_approve_domain || false,
-          is_verified: true, // Auto-verify companies created by users
-          created_by: user.id
-        })
+        .insert(companyData)
         .select()
         .single()
 
