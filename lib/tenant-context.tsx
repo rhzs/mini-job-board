@@ -45,6 +45,7 @@ export function TenantProvider({ children }: TenantProviderProps) {
   const [currentCompany, setCurrentCompany] = useState<UserCompanyMembership | undefined>()
   const [userCompanies, setUserCompanies] = useState<UserCompanyMembership[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isExplicitPersonalMode, setIsExplicitPersonalMode] = useState(false)
 
   // Load user's companies and current company selection
   useEffect(() => {
@@ -55,6 +56,8 @@ export function TenantProvider({ children }: TenantProviderProps) {
       setUserCompanies([])
     }
   }, [user])
+
+
 
   const loadUserCompanies = async () => {
     if (!user) return
@@ -79,7 +82,11 @@ export function TenantProvider({ children }: TenantProviderProps) {
       // Set current company from user metadata or first available
       let currentCompanyId = user.user_metadata?.current_company_id
       
-      if (!currentCompanyId && memberships && memberships.length > 0) {
+      // Only auto-select first company if:
+      // 1. No company ID is set (undefined/null)
+      // 2. User has companies available  
+      // 3. User hasn't explicitly switched to personal mode
+      if (!currentCompanyId && memberships && memberships.length > 0 && !isExplicitPersonalMode) {
         currentCompanyId = memberships[0].company_id
       }
 
@@ -87,11 +94,18 @@ export function TenantProvider({ children }: TenantProviderProps) {
         const currentMembership = memberships?.find(m => m.company_id === currentCompanyId)
         if (currentMembership) {
           setCurrentCompany(currentMembership)
+          // Clear explicit personal mode when loading a company
+          setIsExplicitPersonalMode(false)
           
           // Update user metadata if needed
           if (user.user_metadata?.current_company_id !== currentCompanyId) {
             await updateUserCurrentCompany(currentCompanyId)
           }
+        }
+      } else {
+        // If no company ID and not explicit personal mode, clear current company
+        if (!isExplicitPersonalMode) {
+          setCurrentCompany(undefined)
         }
       }
     } catch (error) {
@@ -121,6 +135,8 @@ export function TenantProvider({ children }: TenantProviderProps) {
       throw new Error('Company membership not found')
     }
 
+    // Clear explicit personal mode when switching to a company
+    setIsExplicitPersonalMode(false)
     setCurrentCompany(membership)
     await updateUserCurrentCompany(companyId)
   }
@@ -132,11 +148,25 @@ export function TenantProvider({ children }: TenantProviderProps) {
 
     setIsLoading(true)
     try {
+      // Generate slug from company name
+      const generateSlug = (name: string): string => {
+        return name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+          .replace(/\s+/g, '-') // Replace spaces with hyphens
+          .replace(/-+/g, '-') // Replace multiple hyphens with single
+          .trim()
+          .substring(0, 50) // Limit length
+      }
+
+      const slug = generateSlug(data.name)
+
       // Create the company
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({
           name: data.name,
+          slug: slug, // Add the generated slug
           description: data.description,
           website: data.website,
           headquarters: data.location, // Map location to headquarters column
@@ -170,12 +200,25 @@ export function TenantProvider({ children }: TenantProviderProps) {
         throw membershipError
       }
 
-      // Reload user companies to include the new one
-      await loadUserCompanies()
+      // Create the new membership object directly (matching UserCompanyMembership interface)
+      const newMembership: UserCompanyMembership = {
+        user_id: user.id,
+        company_id: company.id,
+        company_name: company.name,
+        role: 'owner',
+        status: 'approved',
+        created_at: new Date().toISOString(),
+        approved_at: new Date().toISOString(),
+        email_domain: data.email_domain
+      }
 
-      // Automatically switch to the newly created company
-      await switchCompany(company.id)
+      // Add to userCompanies state directly (faster than reloading)
+      setUserCompanies(prev => [...prev, newMembership])
 
+      // Set as current company directly
+      setCurrentCompany(newMembership)
+      await updateUserCurrentCompany(company.id)
+      
       return company
     } catch (error) {
       console.error('Error creating company:', error)
@@ -266,13 +309,23 @@ export function TenantProvider({ children }: TenantProviderProps) {
     }
   }
 
-  const switchToPersonal = () => {
+  const switchToPersonal = async () => {
+    // Set explicit personal mode flag FIRST to prevent auto-selection
+    setIsExplicitPersonalMode(true)
     setCurrentCompany(undefined)
+    
     // Clear current company from user metadata
     if (user) {
-      supabase.auth.updateUser({
-        data: { current_company_id: null }
-      })
+      try {
+        const { error } = await supabase.auth.updateUser({
+          data: { current_company_id: null }
+        })
+        if (error) {
+          console.error('Error updating user metadata:', error)
+        }
+      } catch (error) {
+        console.error('Exception in updateUser:', error)
+      }
     }
   }
 

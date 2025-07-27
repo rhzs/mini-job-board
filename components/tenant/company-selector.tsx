@@ -234,9 +234,17 @@ export default function CompanySelector({
         {currentCompany && (
           <DropdownMenuItem 
             className="cursor-pointer p-3"
-            onClick={() => {
-              setIsOpen(false)
-              switchToPersonal()
+            onClick={async () => {
+              try {
+                // Switch to personal mode first
+                await switchToPersonal()
+                // Close dropdown after a brief delay to prevent interference
+                setTimeout(() => setIsOpen(false), 100)
+              } catch (error) {
+                console.error('Error in switchToPersonal dropdown click:', error)
+                // Still close dropdown even if error occurs
+                setTimeout(() => setIsOpen(false), 100)
+              }
             }}
           >
             <div className="flex items-center gap-3">

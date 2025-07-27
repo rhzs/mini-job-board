@@ -384,7 +384,7 @@ export interface TenantContext {
   currentCompany?: UserCompanyMembership
   userCompanies: UserCompanyMembership[]
   switchCompany: (companyId: string) => Promise<void>
-  switchToPersonal: () => void
+  switchToPersonal: () => Promise<void>
   createCompany: (data: CompanyFormData) => Promise<Company>
   joinCompany: (request: CompanyJoinRequest) => Promise<UserCompany>
   leaveCompany: (companyId: string) => Promise<void>

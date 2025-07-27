@@ -66,7 +66,13 @@ export default function Header() {
                     )}
                   </button>
                   <button 
-                    onClick={switchToPersonal}
+                    onClick={async () => {
+                      try {
+                        await switchToPersonal()
+                      } catch (error) {
+                        console.error('Error in switchToPersonal header click:', error)
+                      }
+                    }}
                     className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
                   >
                     <ArrowLeft className="h-4 w-4 mr-1" />

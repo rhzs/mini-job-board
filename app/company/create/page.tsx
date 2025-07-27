@@ -37,13 +37,23 @@ export default function CreateCompanyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user) {
+      return
+    }
 
     setIsLoading(true)
     try {
       const company = await createCompany(formData)
+      
       if (company) {
-        // Redirect to home (which will now show employer dashboard)
+        // Small delay to ensure company switch completes
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Force redirect using window.location as backup (client-side only)
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'
+        }
+        // Also try router.push as primary method
         router.push('/')
       }
     } catch (error) {
