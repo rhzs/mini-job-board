@@ -1,6 +1,9 @@
 "use client"
 
 import React, { useState } from 'react'
+
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
 import { useRouter } from 'next/navigation'
 import HeaderWrapper from '@/components/header-wrapper'
 import Footer from '@/components/footer'
@@ -49,11 +52,7 @@ export default function CreateCompanyPage() {
         // Small delay to ensure company switch completes
         await new Promise(resolve => setTimeout(resolve, 500))
         
-        // Force redirect using window.location as backup (client-side only)
-        if (typeof window !== 'undefined') {
-          window.location.href = '/'
-        }
-        // Also try router.push as primary method
+        // Redirect to home page
         router.push('/')
       }
     } catch (error) {
