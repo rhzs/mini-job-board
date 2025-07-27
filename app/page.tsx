@@ -43,6 +43,7 @@ function PageContent() {
   const currentPage = searchParams.get('page')
   const query = searchParams.get('q') || ''
   const location = searchParams.get('location') || ''
+  const hasQueryParam = searchParams.has('q')
   const isCompanyMode = useIsCompanyMode()
 
   // Redirect to home if trying to access My Jobs without authentication
@@ -76,7 +77,7 @@ function PageContent() {
   }
 
   // Show employer dashboard if user is in company mode and on homepage (no query/location)
-  if (user && isCompanyMode && !query && !location && !currentPage) {
+  if (user && isCompanyMode && !hasQueryParam && !location && !currentPage) {
     return (
       <div className="min-h-screen bg-background">
         <HeaderWrapper />
@@ -88,8 +89,8 @@ function PageContent() {
     )
   }
 
-  // Show job search if there's a query OR if user is logged in (for homepage in personal mode)
-  if (query || location || (user && !isCompanyMode)) {
+  // Show job search if there's a query parameter OR location OR if user is logged in (for homepage in personal mode)
+  if (hasQueryParam || location || (user && !isCompanyMode)) {
     return (
       <div className="min-h-screen bg-background">
         <HeaderWrapper />
@@ -99,7 +100,7 @@ function PageContent() {
             initialLocation={location || 'Singapore'} 
           />
           {/* Show personalized recommendations for logged-in users on homepage (no search query) */}
-          {user && !query && !location && !isCompanyMode && (
+          {user && !hasQueryParam && !location && !isCompanyMode && (
             <PersonalizedRecommendations />
           )}
         </main>
