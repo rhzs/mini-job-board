@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { JobPosting, JobPostingFormData } from '@/lib/database.types'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
+import { useTenant } from '@/lib/tenant-context'
 
 interface JobPostingsContextType {
   jobPostings: JobPosting[]
@@ -19,13 +20,14 @@ const JobPostingsContext = createContext<JobPostingsContextType | undefined>(und
 
 export function JobPostingsProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth()
+  const { currentCompany, isLoading: tenantLoading } = useTenant()
   const [jobPostings, setJobPostings] = useState<JobPosting[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch job postings when user changes
+  // Fetch job postings when user or current company changes
   useEffect(() => {
-    // Don't update loading state if auth is still loading
-    if (authLoading) {
+    // Don't update loading state if auth or tenant is still loading
+    if (authLoading || tenantLoading) {
       setLoading(true)
       return
     }
@@ -36,18 +38,28 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
       setJobPostings([])
       setLoading(false)
     }
-  }, [user, authLoading])
+  }, [user, authLoading, currentCompany, tenantLoading])
 
   const fetchJobPostings = async () => {
     if (!user) return
 
     try {
       setLoading(true)
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from('job_postings')
         .select('*')
-        .eq('employer_id', user.id)
         .order('created_at', { ascending: false })
+
+      // If user is in company mode, filter by company_id
+      // Otherwise, filter by employer_id (personal mode - show only their own jobs)
+      if (currentCompany?.company_id) {
+        query = query.eq('company_id', currentCompany.company_id)
+      } else {
+        query = query.eq('employer_id', user.id)
+      }
+
+      const { data, error } = await query
 
       if (error) {
         console.error('Error fetching job postings:', error)
@@ -68,13 +80,18 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
     }
 
     try {
+      // Determine the company_id to use:
+      // If in company mode, use the current company
+      // Otherwise, use the company_id from the form data
+      const companyId = currentCompany?.company_id || jobData.company_id
+
       // Fetch company name from companies table using company_id
       let companyName = 'Unknown Company'
-      if (jobData.company_id) {
+      if (companyId) {
         const { data: companyData, error: companyError } = await supabase
           .from('companies')
           .select('name')
-          .eq('id', jobData.company_id)
+          .eq('id', companyId)
           .single()
         
         if (!companyError && companyData) {
@@ -86,8 +103,8 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
         employer_id: user.id,
         title: jobData.title,
         description: jobData.description,
-        company_id: jobData.company_id,
-        company_name: companyName, // Add the missing required field
+        company_id: companyId,
+        company_name: companyName,
         location: jobData.location,
         job_type: jobData.job_type,
         remote_allowed: jobData.remote_allowed,
@@ -136,14 +153,24 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
     if (!user) return { success: false, error: 'You must be logged in' }
 
     try {
-      const { error } = await supabase
+      let query = supabase
         .from('job_postings')
         .update({ 
           ...updates,
           last_updated: new Date().toISOString() 
         })
         .eq('id', jobId)
-        .eq('employer_id', user.id)
+
+      // Apply the same access control as fetching:
+      // In company mode, allow updating any job from the company
+      // In personal mode, only allow updating user's own jobs
+      if (currentCompany?.company_id) {
+        query = query.eq('company_id', currentCompany.company_id)
+      } else {
+        query = query.eq('employer_id', user.id)
+      }
+
+      const { error } = await query
 
       if (error) {
         console.error('Error updating job posting:', error)
@@ -170,11 +197,21 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
     if (!user) return { success: false, error: 'You must be logged in' }
 
     try {
-      const { error } = await supabase
+      let query = supabase
         .from('job_postings')
         .delete()
         .eq('id', jobId)
-        .eq('employer_id', user.id)
+
+      // Apply the same access control as fetching:
+      // In company mode, allow deleting any job from the company
+      // In personal mode, only allow deleting user's own jobs
+      if (currentCompany?.company_id) {
+        query = query.eq('company_id', currentCompany.company_id)
+      } else {
+        query = query.eq('employer_id', user.id)
+      }
+
+      const { error } = await query
 
       if (error) {
         console.error('Error deleting job posting:', error)
