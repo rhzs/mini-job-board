@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Job } from '@/lib/mock-data'
+import { Job } from '@/lib/database.types'
 import { Button } from '@/components/ui/button'
 import { Heart, Share2, Flag, MapPin, Star, Zap, Briefcase, Calendar, DollarSign, CheckCircle, Clock, ExternalLink, User } from 'lucide-react'
 import { useSaveJobButton } from './saved-jobs'
@@ -255,7 +255,7 @@ export function JobDetail({ job }: JobDetailProps) {
               // Filter out requirements that are the same as the job description to avoid duplication
               const uniqueRequirements = job.requirements
                 .filter(req => typeof req === 'string' && req.trim().length > 0)
-                .filter(req => req.trim() !== job.description.trim());
+                .filter(req => job.description ? req.trim() !== job.description.trim() : true);
               return uniqueRequirements.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">

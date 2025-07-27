@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import CompanySelector from "@/components/tenant/company-selector"
-import { useIsCompanyMode, usePersonalMode } from "@/lib/tenant-context"
+import { useIsCompanyMode } from "@/lib/tenant-context"
 
 export default function Header() {
   const { user, openSignIn } = useAuth()
@@ -18,7 +18,6 @@ export default function Header() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const isCompanyMode = useIsCompanyMode()
-  const switchToPersonal = usePersonalMode()
 
   // Handle hydration
   useEffect(() => {
@@ -64,20 +63,7 @@ export default function Header() {
                     {isHome && (
                       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
                     )}
-                  </button>
-                  <button 
-                    onClick={async () => {
-                      try {
-                        await switchToPersonal()
-                      } catch (error) {
-                        console.error('Error in switchToPersonal header click:', error)
-                      }
-                    }}
-                    className="relative flex items-center h-full px-1 text-sm font-medium text-foreground transition-colors hover:text-indeed-blue"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-1" />
-                    Switch to Personal
-                  </button>
+                  </button> 
                 </>
               ) : (
                 /* Personal Mode Navigation */

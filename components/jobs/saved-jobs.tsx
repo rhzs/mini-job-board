@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { Job } from '@/lib/mock-data'
+import { Job } from '@/lib/database.types'
 
 interface SavedJobsContextType {
   savedJobs: string[]

@@ -408,17 +408,27 @@ export interface Job {
   id: string
   title: string
   company: string
+  company_id?: string
+  company_slug?: string
   location: string
-  salary?: string
+  salary?: {
+    min: number
+    max: number
+    period: 'hour' | 'day' | 'week' | 'month' | 'year'
+    currency: string
+  }
   jobType: string[]
   postedDate: string
   featured?: boolean
   easy_apply?: boolean
-  remote?: boolean
+  easyApply?: boolean
+  remote: boolean
   description?: string
-  requirements?: string
-  benefits?: string
+  requirements?: string[]
+  benefits?: string[]
   companyWebsite?: string
+  responseRate?: string
+  isUrgent?: boolean
 }
 
 export interface JobFilters {

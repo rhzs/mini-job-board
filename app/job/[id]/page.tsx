@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
-import { Job } from '@/lib/mock-data'
+import { Job } from '@/lib/database.types'
 import { fetchJobById, convertJobPostingToJob, incrementJobViewCount } from '@/lib/supabase-jobs'
 import { JobDetail } from '@/components/jobs/job-detail'
 import Header from '@/components/header'

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { JobApplication, ApplicationFormData } from '@/lib/database.types'
-import { Job } from '@/lib/mock-data'
+import { Job } from '@/lib/database.types'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 

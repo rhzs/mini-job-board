@@ -2,6 +2,8 @@ export interface Job {
   id: string
   title: string
   company: string
+  company_id?: string
+  company_slug?: string
   location: string
   salary?: {
     min: number

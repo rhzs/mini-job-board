@@ -13,12 +13,14 @@ export interface JobFilters {
   sortBy?: 'relevance' | 'date'
 }
 
-// Convert JobPosting to Job interface for compatibility with existing components
-export function convertJobPostingToJob(jobPosting: JobPosting) {
+// Convert JobPosting to Job interface for compatibility with existing components  
+export function convertJobPostingToJob(jobPosting: JobPosting & { company_slug?: string }) {
   return {
     id: jobPosting.id,
     title: jobPosting.title,
-    company: jobPosting.company_name || 'Unknown Company', // Use company_name directly since no join
+    company: jobPosting.company_name || 'Unknown Company',
+    company_id: jobPosting.company_id,
+    company_slug: jobPosting.company_slug,
     location: jobPosting.location,
     salary: jobPosting.salary_min && jobPosting.salary_max ? {
       min: jobPosting.salary_min,
@@ -27,7 +29,7 @@ export function convertJobPostingToJob(jobPosting: JobPosting) {
       currency: jobPosting.salary_currency || 'S$'
     } : undefined,
     jobType: jobPosting.job_type || [],
-    remote: jobPosting.remote_allowed || false,
+    remote: Boolean(jobPosting.remote_allowed),
     description: jobPosting.description,
     requirements: Array.isArray(jobPosting.requirements) 
       ? jobPosting.requirements 
@@ -40,6 +42,7 @@ export function convertJobPostingToJob(jobPosting: JobPosting) {
         ? [jobPosting.benefits] 
         : [],
     postedDate: jobPosting.posted_date,
+    easy_apply: jobPosting.easy_apply,
     easyApply: jobPosting.easy_apply,
     responseRate: undefined, // Not in database schema
     isUrgent: jobPosting.is_featured || false,
@@ -62,7 +65,7 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
     
     let query = supabase
       .from('job_postings')
-      .select('*')  // Simplified: remove the company join that's causing issues
+      .select('*')
       .eq('status', 'active')
       .order('posted_date', { ascending: false })
 
@@ -143,9 +146,35 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
     }
 
     console.log('✅ Successfully fetched', data?.length || 0, 'jobs')
+    
+    // Fetch company slugs for all unique company IDs in one query
+    const uniqueCompanyIds = Array.from(new Set(data?.map(job => job.company_id).filter(Boolean)))
+    const companySlugMap = new Map()
+    
+    if (uniqueCompanyIds.length > 0) {
+      try {
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('id, slug')
+          .in('id', uniqueCompanyIds)
+        
+        companies?.forEach(company => {
+          companySlugMap.set(company.id, company.slug)
+        })
+      } catch (error) {
+        console.warn('Could not fetch company slugs:', error)
+      }
+    }
+    
+    // Add company slugs to job data
+    const jobsWithCompanySlugs = data?.map(job => ({
+      ...job,
+      company_slug: job.company_id ? companySlugMap.get(job.company_id) : undefined
+    })) || []
+    
     return {
-      jobs: data || [],
-      total: count || (data?.length || 0)
+      jobs: jobsWithCompanySlugs,
+      total: count || (jobsWithCompanySlugs.length || 0)
     }
   } catch (error) {
     console.error('❌ Error fetching jobs:', error)

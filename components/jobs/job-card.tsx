@@ -1,10 +1,11 @@
 "use client"
 
 import React from 'react'
-import { Job } from '@/lib/mock-data'
+import { Job } from '@/lib/database.types'
 import { Heart, MapPin, Clock, Star, Zap, DollarSign, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSaveJobButton } from './saved-jobs'
+import { useRouter } from 'next/navigation'
 
 interface JobCardProps {
   job: Job
@@ -14,6 +15,14 @@ interface JobCardProps {
 
 export function JobCard({ job, isSelected, onClick }: JobCardProps) {
   const { saved, toggleSave, loading } = useSaveJobButton(job.id)
+  const router = useRouter()
+  
+  const handleCompanyClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent job card click
+    if (job.company_slug) {
+      router.push(`/companies/${job.company_slug}`)
+    }
+  }
   
   const formatSalary = (salary: Job['salary']) => {
     if (!salary) return null
@@ -50,9 +59,18 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
           <h3 className="font-semibold text-foreground text-lg leading-tight">
             {job.title}
           </h3>
-          <p className="text-muted-foreground mt-1">
-            {job.company}
-          </p>
+          {job.company_slug ? (
+            <button 
+              onClick={handleCompanyClick}
+              className="text-muted-foreground mt-1 hover:text-primary hover:underline text-left"
+            >
+              {job.company}
+            </button>
+          ) : (
+            <p className="text-muted-foreground mt-1">
+              {job.company}
+            </p>
+          )}
         </div>
         
         {/* Save/Heart Icon */}
