@@ -26,8 +26,8 @@ export function useTenant() {
 
 // Helper function to determine if user is in company mode
 export function useIsCompanyMode() {
-  const { currentCompany } = useTenant()
-  return !!currentCompany
+  const { currentCompany, isLoading } = useTenant()
+  return { isCompanyMode: !!currentCompany, isLoading }
 }
 
 // Helper function to switch to personal mode

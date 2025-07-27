@@ -44,7 +44,7 @@ function PageContent() {
   const query = searchParams.get('q') || ''
   const location = searchParams.get('location') || ''
   const hasQueryParam = searchParams.has('q')
-  const isCompanyMode = useIsCompanyMode()
+  const { isCompanyMode, isLoading: tenantLoading } = useIsCompanyMode()
 
   // Redirect to home if trying to access My Jobs without authentication
   useEffect(() => {
@@ -53,8 +53,8 @@ function PageContent() {
     }
   }, [user, authLoading, currentPage, router])
 
-  // Show loading if auth is still loading
-  if (authLoading) {
+  // Show loading if auth or tenant data is still loading
+  if (authLoading || tenantLoading) {
     return <PageLoading />
   }
 

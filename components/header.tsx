@@ -17,7 +17,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
-  const isCompanyMode = useIsCompanyMode()
+  const { isCompanyMode } = useIsCompanyMode()
 
   // Handle hydration
   useEffect(() => {
