@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import { ChevronDown, Building2, Plus, Users, Settings, User, LogOut, Mail } from 'lucide-react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
+import { ChevronDown, Building2, Plus, Users, Settings, User, LogOut, Mail, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { 
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useTenant } from '@/lib/tenant-context'
 import { useAuth } from '@/lib/auth-context'
@@ -29,18 +30,54 @@ export default function CompanySelector({
   const { user, signOut } = useAuth()
   const { currentCompany, userCompanies, switchCompany, switchToPersonal, isLoading } = useTenant()
   const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   if (!user) {
     return null
   }
 
+  // Maintain focus on search input after re-renders
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      // Focus the search input when dropdown opens or after typing
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen, searchTerm])
+
+  // Filter companies based on search term
+  const filteredCompanies = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return userCompanies.filter(company => company.company_id !== currentCompany?.company_id)
+    }
+    
+    return userCompanies
+      .filter(company => company.company_id !== currentCompany?.company_id)
+      .filter(company => 
+        company.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (company.industry && company.industry.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        company.role.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+  }, [userCompanies, currentCompany, searchTerm])
+
   const handleCompanySwitch = async (companyId: string) => {
     try {
       await switchCompany(companyId)
       setIsOpen(false)
+      setSearchTerm('') // Clear search when switching
     } catch (error) {
       console.error('Error switching company:', error)
+    }
+  }
+
+  const handleDropdownOpenChange = (open: boolean) => {
+    setIsOpen(open)
+    if (!open) {
+      setSearchTerm('') // Clear search when closing
     }
   }
 
@@ -63,7 +100,7 @@ export default function CompanySelector({
   }
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={isOpen} onOpenChange={handleDropdownOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
@@ -186,44 +223,71 @@ export default function CompanySelector({
             <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
               {currentCompany ? 'Switch Company' : 'Available Companies'}
             </div>
-            {userCompanies
-              .filter(company => company.company_id !== currentCompany?.company_id)
-              .map((company) => (
-                <DropdownMenuItem 
-                  key={company.company_id}
-                  className="cursor-pointer p-3"
-                  onClick={() => handleCompanySwitch(company.company_id)}
-                >
-                  <div className="flex items-center gap-3 w-full">
-                    {company.logo_url ? (
-                      <img 
-                        src={company.logo_url} 
-                        alt={company.company_name}
-                        className="w-6 h-6 rounded object-cover"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 rounded bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center text-white text-xs font-medium">
-                        {getCompanyInitials(company.company_name)}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {company.company_name}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={`text-xs ${getRoleColor(company.role)}`}>
-                          {company.role}
-                        </Badge>
-                        {company.industry && (
-                          <span className="text-xs text-muted-foreground">
-                            {company.industry}
-                          </span>
-                        )}
+            
+            {/* Search Input - only show if there are multiple companies */}
+            {userCompanies.filter(company => company.company_id !== currentCompany?.company_id).length >= 0 && (
+              <div className="px-3 pb-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    ref={searchInputRef}
+                    placeholder="Find project..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 h-8 text-sm"
+                    autoFocus={true}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* Companies List */}
+            <div className="max-h-60 overflow-y-auto">
+              {filteredCompanies.length > 0 ? (
+                filteredCompanies.map((company) => (
+                  <DropdownMenuItem 
+                    key={company.company_id}
+                    className="cursor-pointer p-3"
+                    onClick={() => handleCompanySwitch(company.company_id)}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      {company.logo_url ? (
+                        <img 
+                          src={company.logo_url} 
+                          alt={company.company_name}
+                          className="w-6 h-6 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center text-white text-xs font-medium">
+                          {getCompanyInitials(company.company_name)}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">
+                          {company.company_name}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={`text-xs ${getRoleColor(company.role)}`}>
+                            {company.role}
+                          </Badge>
+                          {company.industry && (
+                            <span className="text-xs text-muted-foreground">
+                              {company.industry}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  </DropdownMenuItem>
+                ))
+              ) : searchTerm.trim() ? (
+                <div className="px-3 py-4 text-center">
+                  <div className="text-sm text-muted-foreground">
+                    No companies found for "{searchTerm}"
                   </div>
-                </DropdownMenuItem>
-              ))}
+                </div>
+              ) : null}
+            </div>
           </>
         )}
 
