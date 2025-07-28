@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { ArrowRight, ArrowLeft, Search, MapPin, X, Check, Plus } from 'lucide-react'
 import { useJobPostings } from './job-postings'
 import { useTenant } from '@/lib/tenant-context'
+import { useAuth } from '@/lib/auth-context'
 
 interface JobPostingModalProps {
   isOpen: boolean
@@ -86,6 +87,7 @@ const initialFormData: JobFormData = {
 
 export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' }: JobPostingModalProps) {
   const { currentCompany } = useTenant()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(() => {
     // In edit mode, skip template selection and start from step 2
     if (mode === 'edit') {
@@ -105,48 +107,51 @@ export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' 
     return 1
   })
   const [formData, setFormData] = useState<JobFormData>(() => {
-    // If editing, use existing job data
+    const initialFormData: JobFormData = {
+      useTemplate: false,
+      title: '',
+      location: 'Jakarta',
+      language: 'English',
+      country: 'Indonesia',
+      jobType: 'Full-time',
+      hasStartDate: false,
+      showPayBy: 'Range',
+      minPay: '',
+      maxPay: '',
+      payRate: 'per month',
+      dealBreakerQuestions: [],
+      screeningQuestions: [],
+      description: '',
+      applicationEmail: '',
+      requireCV: true,
+      allowCandidateContact: true,
+      hasDeadline: false,
+      hiringCount: 0,
+      contactName: '',
+      phoneNumber: '',
+      companyId: ''
+    }
+
+    // If editing existing job, populate with existing data
     if (mode === 'edit' && existingJob) {
       return {
-        useTemplate: false,
+        ...initialFormData,
         title: existingJob.title || '',
         location: existingJob.location || 'Jakarta',
-        language: 'English', // Default for now
-        country: 'Indonesia', // Default for now
-        jobType: existingJob.job_type?.[0] || 'Full-time', // Take first job type
-        hasStartDate: false, // No start_date field in JobPosting
-        startDate: '',
-        showPayBy: existingJob.salary_min && existingJob.salary_max ? 'Range' : 'Starting amount',
-        minPay: existingJob.salary_min?.toString() || '',
-        maxPay: existingJob.salary_max?.toString() || '',
-        payRate: existingJob.salary_period ? `per ${existingJob.salary_period}` : 'per month',
-        dealBreakerQuestions: [], // No direct mapping in JobPosting
-        screeningQuestions: [], // No direct mapping in JobPosting
         description: existingJob.description || '',
-        applicationEmail: existingJob.contact_email || '',
-        requireCV: true, // Default
-        allowCandidateContact: true, // Default
-        hasDeadline: !!existingJob.application_deadline,
-        deadline: existingJob.application_deadline || '',
-        expectedStartDate: '', // No direct mapping in JobPosting
-        hiringCount: 1, // Default
-        contactName: '', // No direct mapping in JobPosting
-        phoneNumber: '', // No direct mapping in JobPosting
+        applicationEmail: existingJob.contact_email || user?.email || '',
         companyId: existingJob.company_id || currentCompany?.company_id || ''
       }
     }
-    
-    // Load from localStorage if available (only for create mode)
-    if (mode === 'create' && typeof window !== 'undefined') {
-      const saved = localStorage.getItem('jobPostingDraft')
-      if (saved) {
-        try {
-          return JSON.parse(saved)
-        } catch {
-          return initialFormData
-        }
+
+    // For create mode, set company_id if user is in company mode
+    if (mode === 'create' && currentCompany?.company_id) {
+      return {
+        ...initialFormData,
+        companyId: currentCompany.company_id
       }
     }
+
     return initialFormData
   })
   const { createJobPosting, updateJobPosting } = useJobPostings()
@@ -246,8 +251,8 @@ export function JobPostingModal({ isOpen, onClose, existingJob, mode = 'create' 
         salary_period: formData.payRate.replace('per ', '') as 'hour' | 'day' | 'week' | 'month' | 'year',
         salary_currency: 'IDR',
         description: formData.description,
-        requirements: '',
-        benefits: '',
+        requirements: [] as any, // Fix: Empty array cast to match database schema
+        benefits: [] as any,    // Fix: Empty array cast to match database schema
         experience_level: 'Mid' as 'Mid' | 'Entry' | 'Senior' | 'Lead' | 'Executive',
         easy_apply: true,
         application_deadline: formData.hasDeadline ? formData.deadline : undefined,

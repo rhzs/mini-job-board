@@ -81,9 +81,12 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
 
     try {
       // Determine the company_id to use:
-      // If in company mode, use the current company
-      // Otherwise, use the company_id from the form data
+      // ALWAYS prioritize currentCompany when in company mode
       const companyId = currentCompany?.company_id || jobData.company_id
+
+      if (!companyId) {
+        return { success: false, error: 'Company ID is required to create a job posting' }
+      }
 
       // Fetch company name from companies table using company_id
       let companyName = 'Unknown Company'
@@ -136,15 +139,21 @@ export function JobPostingsProvider({ children }: { children: React.ReactNode })
         .single()
 
       if (error) {
-        console.error('Error creating job posting:', error)
+        console.error('❌ Error creating job posting:', error)
         return { success: false, error: 'Failed to create job posting' }
       }
 
-      // Add to local state
+      // Add to local state immediately
       setJobPostings(prev => [data, ...prev])
+      
+      // Also trigger a refresh to ensure consistency with database
+      setTimeout(() => {
+        fetchJobPostings()
+      }, 500)
+      
       return { success: true, data }
     } catch (error) {
-      console.error('Error creating job posting:', error)
+      console.error('❌ Error creating job posting:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }

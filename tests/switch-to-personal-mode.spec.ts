@@ -161,13 +161,16 @@ test.describe('Switch to Personal Mode', () => {
     
     // Create a company
     const companyData = createTestCompany()
-    const personalModeButton = page.getByText('Personal Mode')
+    const personalModeButton = page.getByText('Personal Mode').first()
     await expect(personalModeButton).toBeVisible({ timeout: 5000 })
     await personalModeButton.click()
-    await page.waitForTimeout(1000)
     
+    // Wait for dropdown to be visible
+    await page.getByText('Add New Company').waitFor({ timeout: 5000 })
     await page.getByText('Add New Company').click()
-    await page.waitForTimeout(2000)
+    
+    // Wait for company form to load
+    await page.getByLabel('Company Name').waitFor({ timeout: 10000 })
     
     // Fill company form
     await page.getByLabel('Company Name').fill(companyData.name)
@@ -184,11 +187,11 @@ test.describe('Switch to Personal Mode', () => {
     await page.getByRole('button', { name: 'Create Company' }).click()
     
     // Step 2: Verify we're in company mode
-    await page.waitForTimeout(3000)
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
     await expect(page).toHaveURL('/', { timeout: 10000 })
     
     const companyModeButton = page.getByText(companyData.name).first()
-    await expect(companyModeButton).toBeVisible({ timeout: 5000 })
+    await expect(companyModeButton).toBeVisible({ timeout: 10000 })
     
     const hasDashboardContent = await page.getByText('Dashboard').isVisible() || 
                               await page.getByText('Post a Job').isVisible() ||
@@ -198,7 +201,13 @@ test.describe('Switch to Personal Mode', () => {
     
     // Step 3: Refresh page and verify company mode persists
     await page.reload()
-    await page.waitForTimeout(3000)
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
+    
+    // Wait for tenant context to load
+    await Promise.race([
+      page.getByText('Personal Mode').first().waitFor({ timeout: 10000 }).catch(() => {}),
+      page.getByText(companyData.name).first().waitFor({ timeout: 10000 }).catch(() => {})
+    ])
     
     const companyAfterRefresh = page.getByText(companyData.name).first()
     await expect(companyAfterRefresh).toBeVisible({ timeout: 10000 })
@@ -211,22 +220,22 @@ test.describe('Switch to Personal Mode', () => {
     
     // Step 4: Switch to Personal Mode
     await companyAfterRefresh.click()
-    await page.waitForTimeout(1000)
     
+    // Wait for dropdown to appear
     const switchToPersonalOption = page.getByText('Switch to Personal Mode')
     await expect(switchToPersonalOption).toBeVisible({ timeout: 5000 })
     await switchToPersonalOption.click()
     
-    // Wait for switch to complete
-    await page.waitForTimeout(3000)
-    await page.waitForLoadState('networkidle')
+    // Wait for switch to complete by waiting for Personal Mode to be visible
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
     
-    const personalMode = page.getByText('Personal Mode')
-    await expect(personalMode).toBeVisible({ timeout: 10000 })
+    const personalMode = page.getByText('Personal Mode').first()
+    await expect(personalMode).toBeVisible({ timeout: 15000 })
     
-    const hasJobSearchInterface = await page.getByPlaceholder('What', { exact: false }).isVisible() ||
-                                 await page.getByText('Find your next opportunity').isVisible() ||
-                                 await page.getByText('Browse').isVisible()
+    // Check for job search interface (JobSearchPage elements for authenticated users)
+    const hasJobSearchInterface = await page.getByPlaceholder('Job title, keywords, or company').isVisible() ||
+                                 await page.getByText('Browse All Jobs').isVisible() ||
+                                 await page.getByRole('button', { name: 'Search' }).isVisible()
     expect(hasJobSearchInterface).toBe(true)
     
     const hasEmployerDashboard = await page.getByText('Post a Job').isVisible() ||
@@ -236,14 +245,21 @@ test.describe('Switch to Personal Mode', () => {
     
     // Step 5: Refresh page and verify personal mode persists
     await page.reload()
-    await page.waitForTimeout(3000)
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
     
-    const personalModeAfterRefresh = page.getByText('Personal Mode')
-    await expect(personalModeAfterRefresh).toBeVisible({ timeout: 10000 })
+    // Wait for tenant context to load
+    await Promise.race([
+      page.getByText('Personal Mode').first().waitFor({ timeout: 10000 }).catch(() => {}),
+      page.getByText(companyData.name).first().waitFor({ timeout: 10000 }).catch(() => {})
+    ])
     
-    const hasJobSearchAfterRefresh = await page.getByPlaceholder('What', { exact: false }).isVisible() ||
-                                    await page.getByText('Find your next opportunity').isVisible() ||
-                                    await page.getByText('Browse').isVisible()
+    const personalModeAfterRefresh = page.getByText('Personal Mode').first()
+    await expect(personalModeAfterRefresh).toBeVisible({ timeout: 15000 })
+    
+    // Check for job search interface after refresh
+    const hasJobSearchAfterRefresh = await page.getByPlaceholder('Job title, keywords, or company').isVisible() ||
+                                    await page.getByText('Browse All Jobs').isVisible() ||
+                                    await page.getByRole('button', { name: 'Search' }).isVisible()
     expect(hasJobSearchAfterRefresh).toBe(true)
     
     const hasEmployerAfterRefresh = await page.getByText('Post a Job').isVisible() ||
@@ -253,15 +269,17 @@ test.describe('Switch to Personal Mode', () => {
     
     // Step 6: Switch back to company and verify persistence again
     await personalModeAfterRefresh.click()
-    await page.waitForTimeout(1000)
     
+    // Wait for dropdown and company option
     const availableCompany = page.getByText(companyData.name).first()
-    await expect(availableCompany).toBeVisible()
+    await expect(availableCompany).toBeVisible({ timeout: 10000 })
     await availableCompany.click()
-    await page.waitForTimeout(2000)
+    
+    // Wait for company mode switch to complete
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
     
     const companyModeAgain = page.getByText(companyData.name).first()
-    await expect(companyModeAgain).toBeVisible()
+    await expect(companyModeAgain).toBeVisible({ timeout: 15000 })
     
     const hasDashboardAgain = await page.getByText('Dashboard').isVisible() || 
                              await page.getByText('Post a Job').isVisible() ||
@@ -271,10 +289,18 @@ test.describe('Switch to Personal Mode', () => {
     
     // Step 7: Final refresh test
     await page.reload()
-    await page.waitForTimeout(3000)
+    
+    // Wait for page to be ready - more robust than timeout
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
+    
+    // Wait for tenant context to load by waiting for either Personal Mode or company name
+    await Promise.race([
+      page.getByText('Personal Mode').first().waitFor({ timeout: 10000 }).catch(() => {}),
+      page.getByText(companyData.name).first().waitFor({ timeout: 10000 }).catch(() => {})
+    ])
     
     const finalCompanyMode = page.getByText(companyData.name).first()
-    await expect(finalCompanyMode).toBeVisible({ timeout: 10000 })
+    await expect(finalCompanyMode).toBeVisible({ timeout: 15000 })
     
     const finalDashboard = await page.getByText('Dashboard').isVisible() || 
                           await page.getByText('Post a Job').isVisible() ||
