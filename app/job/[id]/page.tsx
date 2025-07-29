@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, use } from 'react'
 import { notFound } from 'next/navigation'
 import { Job } from '@/lib/database.types'
 import { fetchJobById, convertJobPostingToJob, incrementJobViewCount } from '@/lib/supabase-jobs'
@@ -9,9 +9,9 @@ import Header from '@/components/header'
 import Footer from '@/components/footer'
 
 interface JobPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 // Loading skeleton for job detail page
@@ -53,20 +53,21 @@ function JobDetailSkeleton() {
 }
 
 export default function JobPage({ params }: JobPageProps) {
+  const { id } = use(params)
   const [isLoading, setIsLoading] = useState(true)
   const [job, setJob] = useState<Job | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchJob()
-  }, [params.id])
+  }, [id])
 
   const fetchJob = async () => {
     setIsLoading(true)
     setError(null)
     
     try {
-      const jobPosting = await fetchJobById(params.id)
+      const jobPosting = await fetchJobById(id)
       
       if (jobPosting) {
         // Convert JobPosting to Job format for compatibility
@@ -74,7 +75,7 @@ export default function JobPage({ params }: JobPageProps) {
         setJob(convertedJob)
         
         // Increment view count
-        await incrementJobViewCount(params.id)
+        await incrementJobViewCount(id)
       } else {
         setError('Job not found')
       }

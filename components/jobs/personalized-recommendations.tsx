@@ -74,8 +74,8 @@ export function PersonalizedRecommendations() {
     }
   }
 
-  const handleUpdatePreferences = () => {
-    openOnboarding()
+  const handleUpdatePreferences = async () => {
+    await openOnboarding()
   }
 
   if (!user) {

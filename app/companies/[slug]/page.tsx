@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, use } from 'react'
 import { useParams, notFound } from 'next/navigation'
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -12,12 +12,13 @@ import { Company, CompanyQuestion, CompanyAnswer, CompanyReview, CompanySalary }
 import { fetchJobs } from '@/lib/supabase-jobs'
 
 interface CompanyPageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 type TabType = 'snapshot' | 'why-join' | 'reviews' | 'salaries' | 'jobs' | 'questions' | 'interviews'
 
 export default function CompanyPage({ params }: CompanyPageProps) {
+  const { slug } = use(params)
   const [company, setCompany] = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('questions')
@@ -30,7 +31,7 @@ export default function CompanyPage({ params }: CompanyPageProps) {
 
   useEffect(() => {
     fetchCompanyData()
-  }, [params.slug])
+  }, [slug])
 
   useEffect(() => {
     if (company && activeTab === 'questions') {
@@ -46,7 +47,7 @@ export default function CompanyPage({ params }: CompanyPageProps) {
 
   const fetchCompanyData = async () => {
     try {
-      const companyData = await fetchCompanyBySlug(params.slug)
+      const companyData = await fetchCompanyBySlug(slug)
       if (!companyData) {
         notFound()
       }

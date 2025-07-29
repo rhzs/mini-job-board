@@ -15,7 +15,7 @@ interface AuthContextType {
   showOnboarding: boolean
   openSignIn: () => void
   openSignUp: () => void
-  openOnboarding: () => void
+  openOnboarding: () => Promise<void>
   closeModals: () => void
   closeOnboarding: () => void
 }
@@ -97,11 +97,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message }
       }
       
-      // If signup successful, trigger onboarding for new users
+      // If signup successful, close modals - onboarding will be triggered by onAuthStateChange
       if (data.user && !error) {
         console.log('User created successfully:', data.user.email)
         closeModals()
-        openOnboarding()
+        // Don't call openOnboarding() here - let onAuthStateChange handle it to avoid double trigger
         return {}
       }
       
@@ -127,10 +127,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Only show onboarding for completely new users (no preferences at all)
-      // Users with partial preferences can complete later via the recommendations section
-      if (!data) {
+      // Show onboarding only if:
+      // 1. No preferences exist at all (completely new user), OR
+      // 2. Preferences exist but onboarding_completed is explicitly false
+      if (!data || (data && data.onboarding_completed === false)) {
+        console.log('Showing onboarding for user:', user.email, 'Status:', data?.onboarding_completed)
         setShowOnboarding(true)
+      } else {
+        console.log('Onboarding already completed for user:', user.email)
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error)
@@ -151,8 +155,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setShowSignIn(false)
   }
 
-  const openOnboarding = () => {
-    setShowOnboarding(true)
+  const openOnboarding = async () => {
+    if (!user) return
+
+    // Check if user has already completed onboarding
+    try {
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('onboarding_completed')
+        .eq('user_id', user.id)
+        .single()
+
+      // Only show onboarding if user hasn't completed it
+      if (!data || data.onboarding_completed !== true) {
+        console.log('Opening onboarding for user:', user.email)
+        setShowOnboarding(true)
+      } else {
+        console.log('User has already completed onboarding:', user.email)
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status in openOnboarding:', error)
+      // If there's an error checking, show onboarding as fallback
+      setShowOnboarding(true)
+    }
   }
 
   const closeModals = () => {

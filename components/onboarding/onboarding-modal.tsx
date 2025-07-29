@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { useAuth } from '@/lib/auth-context'
@@ -20,6 +20,31 @@ export function OnboardingModal() {
     onboarding_completed: false
   })
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false)
+
+  // Double-check onboarding status when modal shows
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (showOnboarding && user) {
+        try {
+          const { data } = await supabase
+            .from('user_preferences')
+            .select('onboarding_completed')
+            .eq('user_id', user.id)
+            .single()
+          
+          if (data && data.onboarding_completed === true) {
+            console.log('User has already completed onboarding, closing modal')
+            closeOnboarding()
+          }
+        } catch (error) {
+          // Ignore errors, let modal show
+          console.log('Error checking onboarding status in modal, proceeding with onboarding')
+        }
+      }
+    }
+
+    checkOnboardingStatus()
+  }, [showOnboarding, user, closeOnboarding])
 
   const steps = [
     { component: LoadingStep, title: "Matching you with jobs" },
