@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, notFound } from 'next/navigation'
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -18,7 +18,7 @@ interface CompanyPageProps {
 type TabType = 'snapshot' | 'why-join' | 'reviews' | 'salaries' | 'jobs' | 'questions' | 'interviews'
 
 export default function CompanyPage({ params }: CompanyPageProps) {
-  const { slug } = use(params)
+  const [slug, setSlug] = useState<string>('')
   const [company, setCompany] = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('questions')
@@ -29,8 +29,17 @@ export default function CompanyPage({ params }: CompanyPageProps) {
   const [questionFilter, setQuestionFilter] = useState<string>('')
   const [questionSearch, setQuestionSearch] = useState<string>('')
 
+  // Handle async params
   useEffect(() => {
-    fetchCompanyData()
+    params.then(({ slug: resolvedSlug }) => {
+      setSlug(resolvedSlug)
+    })
+  }, [params])
+
+  useEffect(() => {
+    if (slug) {
+      fetchCompanyData()
+    }
   }, [slug])
 
   useEffect(() => {

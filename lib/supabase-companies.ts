@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { Company, CompanyReview, CompanySalary, CompanyQuestion, CompanyAnswer } from './database.types'
+import { createCompanySlug, extractCompanyId } from './utils'
 
 export interface CompanyFilters {
   query?: string
@@ -22,9 +23,7 @@ export async function fetchCompanies(filters: CompanyFilters = {}): Promise<Comp
     let query = supabase
       .from('companies')
       .select('*')
-      .eq('status', 'active')
-      .order('is_featured', { ascending: false })
-      .order('total_reviews', { ascending: false })
+      .order('created_at', { ascending: false })
 
     // Apply search query filter
     if (filters.query && filters.query.trim()) {
@@ -74,26 +73,119 @@ export async function fetchCompanies(filters: CompanyFilters = {}): Promise<Comp
   }
 }
 
-// Fetch a single company by slug
-export async function fetchCompanyBySlug(slug: string): Promise<Company | null> {
+// Fetch a single company by slug (ID-based or name-based)
+export async function fetchCompanyBySlug(slugParam: string): Promise<Company | null> {
   try {
-    const { data, error } = await supabase
+    console.log('🔍 Fetching company by slug parameter:', slugParam)
+    
+    // Extract company ID and slug from the parameter
+    const { id, slug } = extractCompanyId(slugParam)
+    
+    // **Priority 1: ID-based lookup (optimal performance, no ambiguity)**
+    if (id) {
+      console.log('📋 Using ID-based lookup for company ID:', id)
+      
+      const { data: company, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (!error && company && company.name) {
+        console.log('✅ Found company by ID:', company.name)
+        return {
+          ...company,
+          slug: createCompanySlug(company.name)
+        }
+      }
+      
+      console.warn('❌ Company not found by ID:', id)
+    }
+    
+    // **Priority 2: Name-based lookup (fallback for legacy URLs)**
+    console.log('🔤 Using name-based lookup for slug:', slug)
+    
+    // Convert slug to search patterns
+    const basePattern = slug.replace(/-/g, ' ')
+    const titleCase = basePattern.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ')
+    
+    // Single optimized query for name variations
+    const { data: companies, error } = await supabase
       .from('companies')
       .select('*')
-      .eq('slug', slug)
-      .eq('status', 'active')
-      .single()
+      .or(`name.ilike.${slug},name.ilike.${basePattern},name.ilike.${titleCase},name.ilike.%${basePattern}%`)
+      .limit(5)
 
     if (error) {
-      console.error('Error fetching company:', error)
-      return null
+      console.warn('Database query error:', error)
+      return createPlaceholderCompany(slug)
     }
 
-    return data
+    if (!companies || companies.length === 0) {
+      console.log('⚠️ Company not found, creating placeholder for:', slug)
+      return createPlaceholderCompany(slug)
+    }
+
+    // Find the best match by prioritizing exact matches, then shorter names
+    const bestMatch = companies.reduce((best, current) => {
+      if (!current.name) return best
+      if (!best.name) return current
+      
+      // Prioritize exact matches
+      const currentExactMatch = current.name.toLowerCase() === basePattern.toLowerCase() ||
+                               current.name.toLowerCase() === titleCase.toLowerCase() ||
+                               current.name.toLowerCase() === slug.toLowerCase()
+      const bestExactMatch = best.name.toLowerCase() === basePattern.toLowerCase() ||
+                            best.name.toLowerCase() === titleCase.toLowerCase() ||
+                            best.name.toLowerCase() === slug.toLowerCase()
+      
+      if (currentExactMatch && !bestExactMatch) return current
+      if (!currentExactMatch && bestExactMatch) return best
+      
+      // If both or neither are exact matches, prefer shorter names
+      return current.name.length < best.name.length ? current : best
+    })
+
+    console.log('✅ Found company by name:', bestMatch.name)
+    return {
+      ...bestMatch,
+      slug: createCompanySlug(bestMatch.name || slug)
+    }
   } catch (error) {
     console.error('Error fetching company:', error)
-    return null
+    console.log('🔄 Creating placeholder due to error for:', slugParam)
+    const { slug } = extractCompanyId(slugParam)
+    return createPlaceholderCompany(slug)
   }
+}
+
+// Create a placeholder company for companies that don't exist in the database
+function createPlaceholderCompany(slug: string): Company {
+  const companyName = slug.replace(/-/g, ' ').split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ')
+
+  const placeholderCompany: Company = {
+    id: `placeholder-${Date.now()}`,
+    name: companyName,
+    description: `Information about ${companyName} is not yet available. This company profile will be updated as more information becomes available.`,
+    industry: 'Technology',
+    location: 'Singapore',
+    auto_approve_domain: false,
+    is_verified: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    // Optional fields
+    slug: slug,
+    total_reviews: 0,
+    average_rating: 0,
+    company_size: '1-50 employees'
+  }
+
+  console.log('✅ Created placeholder company:', companyName)
+  return placeholderCompany
 }
 
 // Fetch company reviews

@@ -1,11 +1,12 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Job } from '@/lib/database.types'
 import { Heart, MapPin, Clock, Star, Zap, DollarSign, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSaveJobButton } from './saved-jobs'
 import { useRouter } from 'next/navigation'
+import { createCompanyLink } from '@/lib/utils'
 
 interface JobCardProps {
   job: Job
@@ -16,11 +17,18 @@ interface JobCardProps {
 export function JobCard({ job, isSelected, onClick }: JobCardProps) {
   const { saved, toggleSave, loading } = useSaveJobButton(job.id)
   const router = useRouter()
-  
+  const [mounted, setMounted] = useState(false)
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const handleCompanyClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent job card click
-    if (job.company_slug) {
-      router.push(`/companies/${job.company_slug}`)
+    if (mounted && router && job.company) {
+      const companyLink = createCompanyLink(job.company_id, job.company)
+      router.push(`/companies/${companyLink}`)
     }
   }
   
@@ -59,7 +67,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
           <h3 className="font-semibold text-foreground text-lg leading-tight">
             {job.title}
           </h3>
-          {job.company_slug ? (
+          {job.company ? (
             <button 
               onClick={handleCompanyClick}
               className="text-muted-foreground mt-1 hover:text-primary hover:underline text-left"
@@ -68,7 +76,7 @@ export function JobCard({ job, isSelected, onClick }: JobCardProps) {
             </button>
           ) : (
             <p className="text-muted-foreground mt-1">
-              {job.company}
+              Unknown Company
             </p>
           )}
         </div>

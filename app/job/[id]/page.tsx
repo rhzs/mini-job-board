@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, use } from 'react'
+import React, { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
 import { Job } from '@/lib/database.types'
 import { fetchJobById, convertJobPostingToJob, incrementJobViewCount } from '@/lib/supabase-jobs'
@@ -53,13 +53,22 @@ function JobDetailSkeleton() {
 }
 
 export default function JobPage({ params }: JobPageProps) {
-  const { id } = use(params)
+  const [id, setId] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [job, setJob] = useState<Job | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Handle async params
   useEffect(() => {
-    fetchJob()
+    params.then(({ id: resolvedId }) => {
+      setId(resolvedId)
+    })
+  }, [params])
+
+  useEffect(() => {
+    if (id) {
+      fetchJob()
+    }
   }, [id])
 
   const fetchJob = async () => {

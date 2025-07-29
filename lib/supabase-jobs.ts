@@ -147,7 +147,7 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
 
     console.log('✅ Successfully fetched', data?.length || 0, 'jobs')
     
-    // Fetch company slugs for all unique company IDs in one query
+    // Fetch company names for all unique company IDs in one query
     const uniqueCompanyIds = Array.from(new Set(data?.map(job => job.company_id).filter(Boolean)))
     const companySlugMap = new Map()
     
@@ -155,14 +155,16 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<JobSearchResu
       try {
         const { data: companies } = await supabase
           .from('companies')
-          .select('id, slug')
+          .select('id, name')
           .in('id', uniqueCompanyIds)
         
         companies?.forEach(company => {
-          companySlugMap.set(company.id, company.slug)
+          // Generate slug from company name
+          const slug = company.name?.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')
+          companySlugMap.set(company.id, slug)
         })
       } catch (error) {
-        console.warn('Could not fetch company slugs:', error)
+        console.warn('Could not fetch company names:', error)
       }
     }
     

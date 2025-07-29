@@ -11,6 +11,7 @@ import { ArrowLeft, Building2, Mail, Globe, MapPin, Users } from 'lucide-react'
 import { useTenant } from '@/lib/tenant-context'
 import { useAuth } from '@/lib/auth-context'
 import { CompanyFormData } from '@/lib/database.types'
+import { createCompanyLink } from '@/lib/utils'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
@@ -71,8 +72,9 @@ export default function CreateCompanyPage() {
         // Small delay to ensure company switch completes
         await new Promise(resolve => setTimeout(resolve, 500))
         
-        // Redirect to home page
-        safeRouterPush('/')
+        // Create scalable company link using ID + name
+        const companyLink = createCompanyLink(company.id, company.name || 'unknown-company')
+        safeRouterPush(`/companies/${companyLink}`)
       }
     } catch (error) {
       console.error('Error creating company:', error)

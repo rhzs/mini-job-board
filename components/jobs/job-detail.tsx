@@ -1,12 +1,14 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Job } from '@/lib/database.types'
 import { Button } from '@/components/ui/button'
 import { Heart, Share2, Flag, MapPin, Star, Zap, Briefcase, Calendar, DollarSign, CheckCircle, Clock, ExternalLink, User } from 'lucide-react'
 import { useSaveJobButton } from './saved-jobs'
 import { useApplyToJob } from './job-applications'
 import { ApplyModal } from './apply-modal'
+import { useRouter } from 'next/navigation'
+import { createCompanyLink } from '@/lib/utils'
 
 interface JobDetailProps {
   job: Job
@@ -16,6 +18,20 @@ export function JobDetail({ job }: JobDetailProps) {
   const { saved, toggleSave, loading } = useSaveJobButton(job.id)
   const { hasApplied, application } = useApplyToJob(job.id)
   const [showApplyModal, setShowApplyModal] = useState(false)
+  const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleCompanyClick = () => {
+    if (mounted && router && job.company) {
+      const companyLink = createCompanyLink(job.company_id, job.company)
+      router.push(`/companies/${companyLink}`)
+    }
+  }
   
   const formatSalary = (salary: Job['salary']) => {
     if (!salary) return 'Salary not specified'
@@ -53,9 +69,13 @@ export function JobDetail({ job }: JobDetailProps) {
         </h1>
         
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg font-semibold text-indeed-blue underline cursor-pointer hover:text-indeed-blue-dark">
+          <button 
+            onClick={handleCompanyClick}
+            className="text-lg font-semibold text-indeed-blue underline cursor-pointer hover:text-indeed-blue-dark transition-colors text-left"
+            disabled={!mounted}
+          >
             {job.company}
-          </span>
+          </button>
           <ExternalLink className="h-4 w-4 text-muted-foreground" />
         </div>
         
