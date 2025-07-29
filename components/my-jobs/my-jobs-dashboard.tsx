@@ -292,14 +292,22 @@ function EmptyState({ activeTab }: EmptyStateProps) {
           title: 'No jobs saved yet',
           description: 'Jobs you save appear here.',
           buttonText: 'Find jobs',
-          action: () => window.location.href = '/?q='
+          action: () => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/?q='
+            }
+          }
         }
       case 'applied':
         return {
           title: 'No applications yet',
           description: 'Jobs you apply to appear here.',
           buttonText: 'Find jobs',
-          action: () => window.location.href = '/?q='
+          action: () => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/?q='
+            }
+          }
         }
       case 'interviews':
         return {
@@ -313,7 +321,11 @@ function EmptyState({ activeTab }: EmptyStateProps) {
           title: 'No archived jobs',
           description: 'Withdrawn applications and rejected jobs appear here.',
           buttonText: 'Find jobs',
-          action: () => window.location.href = '/?q='
+          action: () => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/?q='
+            }
+          }
         }
     }
   }

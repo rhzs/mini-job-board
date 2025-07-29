@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState } from 'react'
-
-// Force dynamic rendering to prevent static generation issues
-export const dynamic = 'force-dynamic'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import HeaderWrapper from '@/components/header-wrapper'
-import Footer from '@/components/footer'
+import nextDynamic from 'next/dynamic'
+
+// Import components dynamically to prevent SSR issues
+const HeaderWrapper = nextDynamic(() => import('@/components/header-wrapper'), { ssr: false })
+const Footer = nextDynamic(() => import('@/components/footer'), { ssr: false })
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,11 +15,33 @@ import { useTenant } from '@/lib/tenant-context'
 import { useAuth } from '@/lib/auth-context'
 import { CompanyFormData } from '@/lib/database.types'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function CreateCompanyPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { createCompany } = useTenant()
   const [isLoading, setIsLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Safe router navigation
+  const safeRouterPush = (path: string) => {
+    if (mounted && router) {
+      router.push(path)
+    }
+  }
+
+  const safeRouterBack = () => {
+    if (mounted && router) {
+      router.back()
+    }
+  }
   const [formData, setFormData] = useState<CompanyFormData>({
     name: '',
     description: '',
@@ -53,7 +75,7 @@ export default function CreateCompanyPage() {
         await new Promise(resolve => setTimeout(resolve, 500))
         
         // Redirect to home page
-        router.push('/')
+        safeRouterPush('/')
       }
     } catch (error) {
       console.error('Error creating company:', error)
@@ -63,8 +85,8 @@ export default function CreateCompanyPage() {
     }
   }
 
-  if (!user) {
-    router.push('/')
+  if (!user && mounted) {
+    safeRouterPush('/')
     return null
   }
 
@@ -75,7 +97,7 @@ export default function CreateCompanyPage() {
         {/* Back button */}
         <Button
           variant="ghost"
-          onClick={() => router.back()}
+          onClick={() => safeRouterBack()}
           className="mb-6 hover:bg-muted"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -251,7 +273,7 @@ export default function CreateCompanyPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.back()}
+                    onClick={() => safeRouterBack()}
                   >
                     Cancel
                   </Button>

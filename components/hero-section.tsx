@@ -71,7 +71,11 @@ export default function HeroSection() {
             <Button 
               size="lg" 
               className="bg-indeed-blue hover:bg-indeed-blue-dark px-8 py-3 text-lg text-primary-foreground"
-              onClick={() => window.location.href = '/?q='}
+              onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/?q='
+              }
+            }}
             >
               Browse all jobs →
             </Button>

@@ -269,7 +269,9 @@ export default function JobApplicationsPage() {
                                 variant="outline"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  window.location.href = `mailto:${application.applicant_email}`
+                                  if (typeof window !== 'undefined') {
+                  window.location.href = `mailto:${application.applicant_email}`
+                }
                                 }}
                               >
                                 <MessageSquare className="h-3 w-3" />
@@ -339,7 +341,11 @@ export default function JobApplicationsPage() {
                                           <Button 
                                             size="sm" 
                                             variant="outline"
-                                            onClick={() => window.location.href = `mailto:${application.applicant_email}`}
+                                            onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.href = `mailto:${application.applicant_email}`
+                }
+              }}
                                           >
                                             Send Email
                                           </Button>

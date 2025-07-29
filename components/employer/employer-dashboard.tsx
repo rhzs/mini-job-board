@@ -147,7 +147,6 @@ export function EmployerDashboard() {
     const result = await updateJobStatus(jobId, newStatus)
     if (!result.success) {
       console.error('Failed to update job status:', result.error)
-      // You could add a toast notification here
     }
   }
 
@@ -156,7 +155,6 @@ export function EmployerDashboard() {
       const result = await deleteJobPosting(jobId)
       if (!result.success) {
         console.error('Failed to delete job:', result.error)
-        // You could add a toast notification here
       }
     }
   }
@@ -198,8 +196,9 @@ export function EmployerDashboard() {
         console.error('Error duplicating job:', error)
         alert('Failed to duplicate job. Please try again.')
       } else {
-        // Refresh the page to show the new job
-        window.location.reload()
+        if (typeof window !== 'undefined') {
+            window.location.reload()
+        }
       }
     } catch (error) {
       console.error('Error duplicating job:', error)
@@ -208,12 +207,10 @@ export function EmployerDashboard() {
   }
 
   const handleViewJob = (jobId: string) => {
-    // Navigate to public job view
     router.push(`/job/${jobId}`)
   }
 
   const handleViewApplications = (jobId: string) => {
-    // Navigate to applications page for this job
     router.push(`/employer/jobs/${jobId}/applications`)
   }
 
