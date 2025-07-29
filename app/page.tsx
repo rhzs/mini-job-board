@@ -24,10 +24,27 @@ function PageLoading() {
       <HeaderWrapper />
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-32 bg-muted rounded"></div>
-            <div className="h-64 bg-muted rounded"></div>
+          <div className="animate-pulse space-y-6">
+            {/* Hero section skeleton */}
+            <div className="text-center space-y-4 py-12">
+              <div className="h-12 bg-muted rounded-lg w-2/3 mx-auto"></div>
+              <div className="h-6 bg-muted rounded w-1/2 mx-auto"></div>
+              <div className="h-14 bg-muted rounded-lg w-96 mx-auto"></div>
+            </div>
+            
+            {/* Content skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="h-8 bg-muted rounded w-1/3"></div>
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-32 bg-muted rounded-lg"></div>
+                ))}
+              </div>
+              <div className="space-y-4">
+                <div className="h-8 bg-muted rounded w-2/3"></div>
+                <div className="h-48 bg-muted rounded-lg"></div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -41,6 +58,7 @@ function PageContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
   
   // Handle hydration
   useEffect(() => {
@@ -53,6 +71,17 @@ function PageContent() {
   const hasQueryParam = mounted ? searchParams.has('q') : false
   const { isCompanyMode, isLoading: tenantLoading } = useIsCompanyMode()
 
+  // Handle transitions smoothly
+  useEffect(() => {
+    if (authLoading || tenantLoading) {
+      setIsTransitioning(true)
+    } else {
+      // Small delay to prevent flickering during fast state changes
+      const timer = setTimeout(() => setIsTransitioning(false), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [authLoading, tenantLoading])
+
   // Redirect to home if trying to access My Jobs without authentication
   useEffect(() => {
     if (mounted && !authLoading && !user && currentPage === 'my-jobs') {
@@ -60,8 +89,8 @@ function PageContent() {
     }
   }, [mounted, user, authLoading, currentPage, router])
 
-  // Show loading if auth or tenant data is still loading
-  if (authLoading || tenantLoading) {
+  // Show loading if auth or tenant data is still loading OR during transitions
+  if (!mounted || authLoading || tenantLoading || isTransitioning) {
     return <PageLoading />
   }
 

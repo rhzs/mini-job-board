@@ -26,8 +26,11 @@ export function useTenant() {
 
 // Helper function to determine if user is in company mode
 export function useIsCompanyMode() {
-  const { currentCompany, isLoading } = useTenant()
-  return { isCompanyMode: !!currentCompany, isLoading }
+  const { currentCompany, isLoading, isSwitching } = useTenant()
+  return { 
+    isCompanyMode: !!currentCompany, 
+    isLoading: isLoading || isSwitching 
+  }
 }
 
 // Helper function to switch to personal mode
@@ -46,6 +49,7 @@ export function TenantProvider({ children }: TenantProviderProps) {
   const [userCompanies, setUserCompanies] = useState<UserCompanyMembership[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isExplicitPersonalMode, setIsExplicitPersonalMode] = useState(false)
+  const [isSwitching, setIsSwitching] = useState(false)
 
   // Load user's companies and current company selection
   useEffect(() => {
@@ -141,10 +145,18 @@ export function TenantProvider({ children }: TenantProviderProps) {
       throw new Error('Company membership not found')
     }
 
-    // Clear explicit personal mode when switching to a company
-    setIsExplicitPersonalMode(false)
-    setCurrentCompany(membership)
-    await updateUserCurrentCompany(companyId)
+    setIsSwitching(true)
+    try {
+      // Clear explicit personal mode when switching to a company
+      setIsExplicitPersonalMode(false)
+      setCurrentCompany(membership)
+      await updateUserCurrentCompany(companyId)
+      
+      // Small delay to prevent flickering
+      await new Promise(resolve => setTimeout(resolve, 150))
+    } finally {
+      setIsSwitching(false)
+    }
   }
 
   const createCompany = async (data: CompanyFormData): Promise<Company> => {
@@ -323,22 +335,30 @@ export function TenantProvider({ children }: TenantProviderProps) {
   }
 
   const switchToPersonal = async () => {
-    // Set explicit personal mode flag FIRST to prevent auto-selection
-    setIsExplicitPersonalMode(true)
-    setCurrentCompany(undefined)
-    
-    // Clear current company from user metadata
-    if (user) {
-      try {
-        const { error } = await supabase.auth.updateUser({
-          data: { current_company_id: 'PERSONAL_MODE' }
-        })
-        if (error) {
-          console.error('Error updating user metadata:', error)
+    setIsSwitching(true)
+    try {
+      // Set explicit personal mode flag FIRST to prevent auto-selection
+      setIsExplicitPersonalMode(true)
+      setCurrentCompany(undefined)
+      
+      // Clear current company from user metadata
+      if (user) {
+        try {
+          const { error } = await supabase.auth.updateUser({
+            data: { current_company_id: 'PERSONAL_MODE' }
+          })
+          if (error) {
+            console.error('Error updating user metadata:', error)
+          }
+        } catch (error) {
+          console.error('Exception in updateUser:', error)
         }
-      } catch (error) {
-        console.error('Exception in updateUser:', error)
       }
+      
+      // Small delay to prevent flickering
+      await new Promise(resolve => setTimeout(resolve, 150))
+    } finally {
+      setIsSwitching(false)
     }
   }
 
@@ -350,7 +370,8 @@ export function TenantProvider({ children }: TenantProviderProps) {
     createCompany,
     joinCompany,
     leaveCompany,
-    isLoading
+    isLoading,
+    isSwitching
   }
 
   return (

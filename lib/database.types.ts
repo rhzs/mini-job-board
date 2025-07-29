@@ -389,6 +389,7 @@ export interface TenantContext {
   joinCompany: (request: CompanyJoinRequest) => Promise<UserCompany>
   leaveCompany: (companyId: string) => Promise<void>
   isLoading: boolean
+  isSwitching: boolean
 }
 
 // User context with multi-tenant support

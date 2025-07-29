@@ -30,17 +30,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
+    let initialLoadTimer: NodeJS.Timeout | null = null
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      setLoading(false)
+      
+      // Add small delay for initial load to prevent flickering
+      initialLoadTimer = setTimeout(() => {
+        setLoading(false)
+      }, 100)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null)
-        setLoading(false)
+        
+        // For auth state changes (not initial), set loading false immediately
+        if (event !== 'INITIAL_SESSION') {
+          setLoading(false)
+        }
         
         // Close modals on successful auth and check onboarding
         if (event === 'SIGNED_IN') {
@@ -51,7 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      if (initialLoadTimer) {
+        clearTimeout(initialLoadTimer)
+      }
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {

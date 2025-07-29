@@ -17,7 +17,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
-  const { isCompanyMode } = useIsCompanyMode()
+  const { isCompanyMode, isLoading: tenantLoading } = useIsCompanyMode()
 
   // Handle hydration
   useEffect(() => {
@@ -30,6 +30,33 @@ export default function Header() {
   
   const isMyJobs = currentPage === 'my-jobs'
   const isHome = mounted && pathname === '/' && !currentPage && !searchQuery
+
+  // Show simplified header during tenant loading to prevent flickering
+  if (!mounted || tenantLoading) {
+    return (
+      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-10">
+              <div className="flex-shrink-0">
+                <button className="text-2xl font-bold text-indeed-blue hover:text-indeed-blue-dark transition-colors">
+                  indeed
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              {user ? (
+                <div className="w-32 h-8 bg-muted animate-pulse rounded"></div>
+              ) : (
+                <Button onClick={openSignIn}>Sign in</Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   const handleNavigation = (path: string) => {
     if (mounted && router) {
