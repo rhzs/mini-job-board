@@ -2,11 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import nextDynamic from 'next/dynamic'
-
-// Import components dynamically to prevent SSR issues
-const HeaderWrapper = nextDynamic(() => import('@/components/header-wrapper'), { ssr: false })
-const Footer = nextDynamic(() => import('@/components/footer'), { ssr: false })
+import HeaderWrapper from '@/components/header-wrapper'
+import Footer from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

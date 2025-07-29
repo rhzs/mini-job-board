@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import HeaderWrapper from "@/components/header-wrapper"
 import Footer from "@/components/footer"
@@ -40,18 +40,25 @@ function PageContent() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const currentPage = searchParams.get('page')
-  const query = searchParams.get('q') || ''
-  const location = searchParams.get('location') || ''
-  const hasQueryParam = searchParams.has('q')
+  const [mounted, setMounted] = useState(false)
+  
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  const currentPage = mounted ? searchParams.get('page') : null
+  const query = mounted ? searchParams.get('q') || '' : ''
+  const location = mounted ? searchParams.get('location') || '' : ''
+  const hasQueryParam = mounted ? searchParams.has('q') : false
   const { isCompanyMode, isLoading: tenantLoading } = useIsCompanyMode()
 
   // Redirect to home if trying to access My Jobs without authentication
   useEffect(() => {
-    if (!authLoading && !user && currentPage === 'my-jobs') {
+    if (mounted && !authLoading && !user && currentPage === 'my-jobs') {
       router.push('/')
     }
-  }, [user, authLoading, currentPage, router])
+  }, [mounted, user, authLoading, currentPage, router])
 
   // Show loading if auth or tenant data is still loading
   if (authLoading || tenantLoading) {

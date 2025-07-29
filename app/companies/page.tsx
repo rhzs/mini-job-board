@@ -42,8 +42,14 @@ function CompaniesPageLoading() {
 function CompaniesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [mounted, setMounted] = useState(false)
   
-  const [query, setQuery] = useState(searchParams.get('q') || '')
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  const [query, setQuery] = useState(mounted ? searchParams.get('q') || '' : '')
   const [companies, setCompanies] = useState<Company[]>([])
   const [popularCompanies, setPopularCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -109,7 +115,9 @@ function CompaniesPageContent() {
     }
     
     const newUrl = params.toString() ? `/companies?${params.toString()}` : '/companies'
-    router.push(newUrl)
+    if (mounted && router) {
+      router.push(newUrl)
+    }
     
     searchCompanies()
   }
@@ -206,7 +214,11 @@ function CompaniesPageContent() {
                     <CompanyCard
                       key={company.id}
                       company={company}
-                      onClick={() => router.push(`/companies/${company.slug}`)}
+                      onClick={() => {
+                        if (mounted && router) {
+                          router.push(`/companies/${company.slug}`)
+                        }
+                      }}
                     />
                   ))}
                 </div>
@@ -242,7 +254,11 @@ function CompaniesPageContent() {
                     <CompanyCard
                       key={company.id}
                       company={company}
-                      onClick={() => router.push(`/companies/${company.slug}`)}
+                      onClick={() => {
+                        if (mounted && router) {
+                          router.push(`/companies/${company.slug}`)
+                        }
+                      }}
                       showFullInfo
                     />
                   ))}

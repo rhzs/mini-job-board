@@ -29,10 +29,12 @@ export default function Header() {
   const searchQuery = mounted ? searchParams.get('q') : null
   
   const isMyJobs = currentPage === 'my-jobs'
-  const isHome = pathname === '/' && !currentPage && !searchQuery
+  const isHome = mounted && pathname === '/' && !currentPage && !searchQuery
 
   const handleNavigation = (path: string) => {
-    router.push(path)
+    if (mounted && router) {
+      router.push(path)
+    }
   }
 
   return (
@@ -95,11 +97,11 @@ export default function Header() {
                   <button 
                     onClick={() => handleNavigation('/companies')}
                     className={`relative flex items-center h-full px-1 text-sm font-medium transition-colors hover:text-indeed-blue ${
-                      pathname === '/companies' ? 'text-indeed-blue' : 'text-foreground'
+                      mounted && pathname === '/companies' ? 'text-indeed-blue' : 'text-foreground'
                     }`}
                   >
                     Company reviews
-                    {pathname === '/companies' && (
+                    {mounted && pathname === '/companies' && (
                       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indeed-blue rounded-full"></div>
                     )}
                   </button>
